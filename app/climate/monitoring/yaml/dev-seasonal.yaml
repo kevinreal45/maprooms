@@ -12,6 +12,32 @@ description:
         Cette interface permet à l'utilisateur de visualiser les climatologies et les anomalies de précipitations et températures. Les climatologies sont définies par la période 1991-2020.
         </p>
 
+dataset:
+    use: MON
+    variables:
+        rain_seas: [precip]
+        anom_seas: [precip]
+        anom_per_seas: [precip]
+        spi_seas: [precip]
+
+variables:
+    label:
+        en: Variable
+        fr: Variable
+    select:
+        rain_seas:
+            en: Seasonal Rainfall Total
+            fr: Cumul de Précipitations Saisonnières
+        anom_seas:
+            en: Seasonal Rainfall Anomaly
+            fr: Anomalie de Précipitations Saisonnières
+        anom_per_seas:
+            en: Seasonal Rainfall Anomaly in Percent
+            fr: Anomalie de Précipitations Saisonnières en Pourcentage
+        spi_seas:
+            en: Standard Precipitation Index (SPI)
+            fr: Indice de Précipitations Standardisé (SPI)
+
 opt_dates:
     label:
         en: Date
@@ -22,9 +48,95 @@ opt_dates:
     length:
         en: Length
         fr: Longueur
+    end_month:
+        en: Month of
+        fr: Mois du
     time_scale:
         en: Time scales
         fr: Échelles de temps
     months:
         en: months
         fr: mois
+
+opt_anomaly:
+    label:
+        en: Anomaly
+        fr: Anomalie
+    select:
+        difference:
+            en: Deviation from mean
+            fr: Écart par rapport à la moyenne
+        standardized:
+            en: Standardized anomaly
+            fr: Anomalie standardisée
+        percentage:
+            en: Percentage of mean
+            fr: Pourcentage de la moyenne
+
+opt_ts_anom:
+    label_series:
+        en: Display
+        fr: Afficher
+    series:
+        one:
+            en: One serie
+            fr: Une série
+        tstep:
+            en: By season
+            fr: Par saison
+
+opt_season:
+    label_year:
+        start:
+            en: Start year
+            fr: Début année
+        end:
+            en: End year
+            fr: Fin année
+    season_ts:
+        start:
+            en: Season start month
+            fr: Mois début de saison
+        length:
+            en: Season length
+            fr: Longueur saison
+        unit:
+            en: months
+            fr: mois
+
+opt_ts_raw:
+    label_date:
+        start:
+            en: Start
+            fr: Début
+        end:
+            en: End
+            fr: Fin
+    label_series:
+        en: Display
+        fr: Afficher
+    series:
+        one:
+            en: One serie
+            fr: Une série
+        years:
+            en: Each year
+            fr: Chaque année
+    start_mon:
+        en: Start month
+        fr: Début mois
+
+opt_ts_raw_plot:
+    label:
+        en: Plot type
+        fr: Type de graphique
+    select:
+        bar:
+            en: Bar
+            fr: Barre
+        line:
+            en: Line
+            fr: Ligne
+        lpoint:
+            en: Line + Points
+            fr: Ligne + Points

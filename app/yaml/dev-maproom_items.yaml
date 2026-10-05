@@ -2,18 +2,22 @@ title:
     en: Maprooms
     fr: Maprooms
 description: 
-    en: The maproom is a collection of maps and other figures 
-        that monitor climate and societal conditions at present and in the recent past. 
-        The maps and figures can be manipulated and are linked to the original data. 
-        Even if you are primarily interested in data rather than figures, 
-        this is a good place to see which datasets are particularly useful 
-        for monitoring current conditions.
-    fr: La Maproom est une collection de cartes et d'autres figures 
-        qui décrivent le climat et des secteurs sociétaux associés. 
-        Les cartes et les figures peuvent être manipulées et sont liées aux données d'origine. 
-        Même si vous êtes principalement intéressés par les données bruts plutôt que des figures, 
-        la Maproom est un bon endroit pour voir quelles données sont particulièrement utiles 
-        pour décrire le climat.
+    en: |
+        <p>The <strong>ENACTS Maproom</strong> is an interactive online climate information platform designed to make climate information on the past, present, and future easily accessible and usable for decision-makers, practitioners, and the public.</p>
+        <p>
+        Built on the high-resolution ENACTS datasets, the Maproom provides user-friendly visualization and analysis tools for rainfall and temperature. Information can be extracted and displayed at different administrative levels, enabling localized analysis and decision-making tailored to specific regions. 
+        </p>
+        <p>
+        Users can generate maps, graphs, and download them for their specific locations and time periods, supporting applications in agriculture, water resources, health, disaster risk management, energy, and climate adaptation.
+        </p>
+    fr: |
+        <p>La <strong>Maproom ENACTS</strong> est une plateforme interactive d'information climatique en ligne conçu pour rendre les informations climatiques passées, présentes et futures facilement accessibles et utilisables par les décideurs, les professionnels et le grand public. Fondée sur les jeux de données ENACTS à haute résolution, elle propose des outils conviviaux de visualisation et d’analyse des précipitations et des températures.</p>
+        <p>
+        Les informations peuvent être extraites et affichées à différents niveaux administratifs, permettant ainsi des analyses localisées et une prise de décision adaptée aux spécificités de chaque région. 
+        </p>
+        <p>
+        Les utilisateurs peuvent générer et télécharger des cartes et des graphiques pour des zones géographiques et des périodes précises. Ces fonctionnalités facilitent les applications dans les domaines de l’agriculture, des ressources en eau, de la santé, de la gestion des risques de catastrophe, de l’énergie et de l’adaptation au changement climatique.
+        </p>
 type: navigation-card
 components:
     - climate

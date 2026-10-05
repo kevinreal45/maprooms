@@ -13,6 +13,9 @@ user_management:
 expand_chart:
     en: Expand Chart
     fr: Agrandir le graphique
+info_chart:
+    en: Information about this chart
+    fr: Informations sur ce graphique
 map_control:
     en: Map control
     fr: Contrôle de la carte

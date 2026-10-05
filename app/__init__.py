@@ -37,7 +37,8 @@ from app.climate.projection.index import climate_projection
 
 from app.agriculture.analysis.index import agriculture_analysis
 
-from app.health.index import health
+from app.health.malaria.index import health_malaria
+
 from app.drm.index import drm
 
 from app.water.analysis.index import water_analysis
@@ -56,7 +57,8 @@ app.register_blueprint(climate_projection)
 
 app.register_blueprint(agriculture_analysis)
 
-app.register_blueprint(health)
+app.register_blueprint(health_malaria)
+
 app.register_blueprint(drm)
 
 app.register_blueprint(water_analysis)
@@ -114,7 +116,7 @@ def _render_maproom_template(maproom, component, page, **context):
 
     candidate_template_dirs = []
     if component != '':
-        # agriculture, climate, water layout
+        # agriculture, climate, water, health layout
         # "app/<maproom>/<component>/templates"
         candidate_template_dirs.append(
             os.path.join(
@@ -125,7 +127,7 @@ def _render_maproom_template(maproom, component, page, **context):
             )
         )
 
-    # drm, health layout
+    # drm, (old: health malaria) layout
     # "app/<maproom>/templates"
     candidate_template_dirs.append(
         os.path.join(

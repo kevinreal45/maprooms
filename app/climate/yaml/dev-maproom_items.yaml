@@ -2,8 +2,32 @@ title:
     en: Climate
     fr: Climat
 description: 
-    en: Historical, current and forecast climate conditions around the country.
-    fr: Conditions climatiques historiques, courantes et prévues dans le pays.
+    en: |
+        <p>
+        The <strong>Climate Maproom</strong> enables users to access, analyze, and visualize climate information across the past, present, and future to support evidence-based decision-making. 
+        </p>
+        <p>
+        Through its <strong>Climate Analysis</strong> products, users can explore historical climate conditions, variability, and trends using high-resolution datasets and a wide range of climate indicators.
+        </p>
+        <p>
+        The <strong>Climate Monitoring</strong> products provide near-real-time information on current climate conditions, allowing users to track rainfall, temperature, drought, and other climate-related phenomena as they evolve. 
+        </p>
+        <p>
+        Looking ahead, the <strong>Climate Prediction and Projection</strong> products offer access to seasonal climate forecasts and long-term climate change projections, helping users anticipate future conditions and plan accordingly.
+        </p>
+    fr: |
+        <p>
+        La <strong>Maproom Climat</strong> permet aux utilisateurs d’accéder aux informations climatiques passées, présentes et futures, de les analyser et de les visualiser afin de soutenir une prise de décision fondée sur des données probantes.
+        </p>
+        <p>
+        Grâce aux produits d’<strong>Analyse Climatique</strong>, les utilisateurs peuvent explorer les conditions climatiques historiques, leur variabilité et leurs tendances à partir de jeux de données à haute résolution et d’un large éventail d’indicateurs climatiques.
+        </p>
+        <p>
+        Les produits de <strong>Suivi Climatique</strong> fournissent des informations en temps quasi réel sur les conditions climatiques actuelles. Ils permettent de suivre l’évolution des précipitations, des températures, des sécheresses et d’autres phénomènes liés au climat.
+        </p>
+        <p>
+        Enfin, les produits de <strong>Prévision et de Projection Climatiques</strong> donnent accès aux prévisions climatiques saisonnières ainsi qu’aux projections à long terme du changement climatique. Ils aident ainsi les utilisateurs à anticiper les conditions futures et à planifier leurs actions en conséquence.
+        </p>
 type: navigation-card
 # icon_image from /app/static/images/card_icons
 icon_image: default-emi_climate.gif

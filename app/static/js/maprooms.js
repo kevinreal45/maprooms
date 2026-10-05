@@ -263,7 +263,7 @@ function disposeModalDialog(modal_id) {
     }
 }
 
-function expandModalCharts(container, callback_chart, time_res = null, plotElementSuffix = '', colorsModule = undefined) {
+function expandModalCharts(container, callback_chart, time_res = null, plotElementSuffix = '', colorsModule = undefined, axisKindResolver = null, caseKeyResolver = null, disallowedTickUnits = []) {
     const divChart = $(`#modal-chart-${container}`);
     divChart.empty();
     const contChart = `container-chart-${container}`;
@@ -271,8 +271,8 @@ function expandModalCharts(container, callback_chart, time_res = null, plotEleme
         .addClass('modal-expand-charts-plotly')
         .appendTo(divChart);
 
-// create the chart settings button 
-    enablePlotlyChartSettings(container, `${contChart}${plotElementSuffix}`, undefined, colorsModule);
+// create the chart settings button
+    enablePlotlyChartSettings(container, `${contChart}${plotElementSuffix}`, undefined, colorsModule, axisKindResolver, caseKeyResolver, disallowedTickUnits);
 
     const modalEl = document.getElementById(`modal-expand-${container}`);
     const drawChart = () => {

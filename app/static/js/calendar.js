@@ -157,7 +157,12 @@ function setDateCalendar(
     // 
     if (dispDate === null) {
         if (tempRes === 'seasonal' && !dispYear) {
-            const disp_d = addDateYears(temp_cov.end, -1);
+            let disp_d;
+            if (URL_ARGS.component === 'monitoring') {
+                disp_d = temp_cov.end;
+            } else {
+                disp_d = addDateYears(temp_cov.end, -1);
+            }
             dispDate = formatDateToString(disp_d);
         } else {
             dispDate = temp_cov.end;
@@ -229,7 +234,8 @@ function setDateCalendar(
 function setNamesCalendar(
     divContainerID, tempRes,
     dropdownParent = $(document.body),
-    mapNavigation = true
+    mapNavigation = true,
+    startMonth = SEASON_DEF.months.start
 ) {
     let divCont = $(`#${divContainerID}`);
     divCont.empty();
@@ -249,8 +255,8 @@ function setNamesCalendar(
                 .val(m + 1)
             );
         }
-        select.val(SEASON_DEF.months.start);
-        const imon = parseInt(SEASON_DEF.months.start, 10);
+        select.val(startMonth);
+        const imon = parseInt(startMonth, 10);
         var int_value = months[imon - 1];
     } else if (tempRes === 'dekadal') {
         const dekads = getListOfDekadsCalendar();
@@ -314,12 +320,17 @@ function setMonthsDaysCalendar(monthID, dayID, month0, day0, isStart) {
     const mon_id = $(`#${monthID}`);
     const day_id = $(`#${dayID}`);
 
-    for (let m = 0; m < months.length; m++) {
-        mon_id.append(
-            $('<option>')
-            .text(months[m])
-            .val(m + 1)
-        );
+
+    const alreadyInitialized = mon_id.find('option').length > 0;
+
+    if (!alreadyInitialized) {
+        for (let m = 0; m < months.length; m++) {
+            mon_id.append(
+                $('<option>')
+                .text(months[m])
+                .val(m + 1)
+            );
+        }
     }
 
     mon_id
@@ -342,8 +353,10 @@ function setMonthsDaysCalendar(monthID, dayID, month0, day0, isStart) {
             day_id.val(v);
         });
 
-    mon_id.val(month0).trigger('change');
-    day_id.val(day0);
+    if (!alreadyInitialized) {
+        mon_id.val(month0).trigger('change');
+        day_id.val(day0);
+    }
 }
 
 function defineSeasonMonths(start, length, long = true) {
@@ -469,15 +482,35 @@ function formatDekadDate(date) {
     return `${ym}-${dk}`;
 }
 
-function formatSeasonDate(date, length) {
-    let start = new Date(`${date}-16`);
-    let end = addDateMonths(start, length - 1);
+// function formatSeasonDate(date, length) {
+//     let start = new Date(`${date}-16`);
+//     let end = addDateMonths(start, length - 1);
+//     start = formatDateToString(start);
+//     start = start.slice(0, 7);
+//     end = formatDateToString(end);
+//     end = end.slice(0, 7);
+//     return `${start}_${end}`;
+// }
+
+function formatSeasonDate(date, length, isStart = true) {
+    const this_date = new Date(`${date}-16`);
+    let start;
+    let end;
+    if (isStart) {
+        start = this_date;
+        end = addDateMonths(this_date, length - 1);
+    } else {
+        start = addDateMonths(this_date, -1 * length + 1);
+        end = this_date;
+    }
+
     start = formatDateToString(start);
     start = start.slice(0, 7);
     end = formatDateToString(end);
     end = end.slice(0, 7);
     return `${start}_${end}`;
 }
+
 
 function getSeasonFromDate(date, length) {
     date = new Date(date);

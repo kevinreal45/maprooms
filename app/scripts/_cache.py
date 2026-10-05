@@ -23,6 +23,7 @@ def _hash_params(pars):
 
 def cache_data_functions(function, hash_key, params):
     cache_key = hash_key(params)
+    # cache.delete(cache_key)
     cached_data = cache.get(cache_key)
     if cached_data is None:
         cached_data = function(params)

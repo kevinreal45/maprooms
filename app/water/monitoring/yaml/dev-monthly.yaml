@@ -1,11 +1,121 @@
 description:
-    en: test
-    fr: test
-# all about monthly
+    en: |
+        <h4>Monthly Climate Monitoring</h4>
+        <p>
+        Rainfall and temperature time series (from 1981) reconstructed from station observations and remote sensing proxies. 
+        This interface allows users to view rainfall, maximum and minimum temperature climatologies and anomalies.
+        </p>
+    fr: |
+        <h4>Suivi Climatique Mensuel</h4>
+        <p>
+        Séries temporelles (à partir de 1981) de précipitations et de température reconstruites à partir de données in-situ et de données de télédétection.
+        Cette interface permet à l'utilisateur de visualiser les climatologies et les anomalies de précipitations et températures. Les climatologies sont définies par la période 1991-2020.
+        </p>
+
 dataset:
-    rawdata:
-        dataset: MON
-    climatology:
-        dataset: MON
-    anomaly:
-        dataset: MON
+    use: MON
+    variables:
+        rain_mon: [precip]
+        anom_mon: [precip]
+        anom_per_mon: [precip]
+        spi_mon: [precip]
+
+variables:
+    label:
+        en: Variable
+        fr: Variable
+    select:
+        rain_mon:
+            en: Monthly Rainfall Total
+            fr: Cumul de Précipitations Mensuelles
+        anom_mon:
+            en: Monthly Rainfall Anomaly
+            fr: Anomalie de Précipitations Mensuelles
+        anom_per_mon:
+            en: Monthly Rainfall Anomaly in Percent
+            fr: Anomalie de Précipitations Mensuelles en Pourcentage
+        spi_mon:
+            en: Standard Precipitation Index (SPI)
+            fr: Indice de Précipitations Standardisé (SPI)
+
+opt_dates:
+    label:
+        en: Date
+        fr: Date
+    month:
+        en: Month of
+        fr: Mois du
+
+opt_ts_raw:
+    label_date:
+        start:
+            en: Start
+            fr: Début
+        end:
+            en: End
+            fr: Fin
+    label_series:
+        en: Display
+        fr: Afficher
+    series:
+        one:
+            en: One serie
+            fr: Une série
+        years:
+            en: Each year
+            fr: Chaque année
+    start_mon:
+        en: Start month
+        fr: Début mois
+
+opt_ts_raw_plot:
+    label:
+        en: Plot type
+        fr: Type de graphique
+    select:
+        bar:
+            en: Bar
+            fr: Barre
+        line:
+            en: Line
+            fr: Ligne
+        lpoint:
+            en: Line + Points
+            fr: Ligne + Points
+
+opt_anomaly:
+    label:
+        en: Anomaly
+        fr: Anomalie
+    select:
+        difference:
+            en: Deviation from mean
+            fr: Écart par rapport à la moyenne
+        standardized:
+            en: Standardized anomaly
+            fr: Anomalie standardisée
+        percentage:
+            en: Percentage of mean
+            fr: Pourcentage de la moyenne
+
+opt_ts_anom:
+    label_date:
+        start:
+            en: Start
+            fr: Début
+        end:
+            en: End
+            fr: Fin
+    label_series:
+        en: Display
+        fr: Afficher
+    series:
+        one:
+            en: One serie
+            fr: Une série
+        tstep:
+            en: By month
+            fr: Par mois
+    label_tstep:
+        en: Month
+        fr: Mois

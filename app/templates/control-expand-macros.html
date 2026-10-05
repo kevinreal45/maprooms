@@ -1,5 +1,10 @@
-{% macro create_expand_charts_raw(tempRes, pageText) %}
+{% macro create_expand_charts_raw(tempRes, pageText, urlArgs) %}
 <div class="container d-flex flex-wrap justify-content-start w-100" id="{{ tempRes }}-raw-control">
+    {% if urlArgs.component == 'monitoring' %}
+    <select id="{{ tempRes }}-chart-raw-variable" hidden>
+        <option value="{{ pageText.variables.select.keys() | first }}" selected>{{ pageText.variables.select.values() | first }}</option>
+    </select>
+    {% else %}
     <fieldset class="border border-secondary rounded-3 py-1">
         <legend class="legend-label">{{ pageText.variables.label }}</legend>
         <select id="{{ tempRes }}-chart-raw-variable" class="form-select {{ tempRes }}-raw-select2" style="width: 200px;">
@@ -8,6 +13,7 @@
             {% endfor %}
         </select>
     </fieldset>
+    {% endif %}
     <fieldset class="border border-secondary rounded-3 py-1">
         <legend class="legend-label">{{ pageText.opt_ts_raw.label_date.start }}</legend>
         <div id="{{ tempRes }}-chart-raw-startdate" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Start date" style="width: 8.0em">
@@ -20,6 +26,26 @@
             <input id="{{ tempRes }}-chart-raw-enddate-calendar" type="text" class="form-control">
         </div>
     </fieldset>
+    {% if urlArgs.component == 'monitoring' and tempRes == 'seasonal' %}
+    <fieldset class="border border-secondary rounded-3 py-1">
+        <legend class="legend-label">{{ pageText.opt_season.season_ts.start }}</legend>
+        <div id="{{ tempRes }}-chart-season-startmon" style="width: 160px;"></div>
+    </fieldset>
+    <fieldset class="border border-secondary rounded-3 py-1">
+        <legend class="legend-label">{{ pageText.opt_season.season_ts.length }}</legend>
+        <div class="row">
+            <div class="col-md-4">
+                <select id="{{ tempRes }}-chart-season-seaslen" class="form-select {{ tempRes }}-raw-select2"></select>
+            </div>
+            <div class="col-md-6">
+                {{ pageText.opt_season.season_ts.unit }}
+            </div>
+        </div>
+    </fieldset>
+    <select id="{{ tempRes }}-chart-raw-series" hidden>
+        <option value="{{ pageText.opt_ts_raw.series.keys() | first }}" selected>{{ pageText.opt_ts_raw.series.values() | first }}</option>
+    </select>
+    {% else %}
     <fieldset class="border border-secondary rounded-3 py-1">
         <legend class="legend-label">{{ pageText.opt_ts_raw.label_series }}</legend>
         <select id="{{ tempRes }}-chart-raw-series" class="form-select {{ tempRes }}-raw-select2" style="width: 150px;">
@@ -32,11 +58,26 @@
         <legend class="legend-label">{{ pageText.opt_ts_raw.start_mon }}</legend>
         <div id="{{ tempRes }}-chart-raw-startmonth" style="width: 120px;"></div>
     </fieldset>
+    {% endif %}
+    <!--  -->
+    <fieldset id="{{ tempRes }}-chart-raw-plot-type-cont" class="border border-secondary rounded-3 py-1" style="display: none;">
+        <legend class="legend-label">{{ pageText.opt_ts_raw_plot.label }}</legend>
+        <select id="{{ tempRes }}-chart-raw-plot-type" class="form-select {{ tempRes }}-raw-select2" style="width: 150px;">
+            {% for key, value in pageText.opt_ts_raw_plot.select.items() %}
+            <option value="{{key}}">{{value}}</option>
+            {% endfor %}
+        </select>
+    </fieldset>
 </div>
 {% endmacro %}
 <!--  -->
-{% macro create_expand_charts_anom(tempRes, pageText, fmacros) %}
+{% macro create_expand_charts_anom(tempRes, pageText, fmacros, urlArgs) %}
 <div class="container d-flex flex-wrap justify-content-start w-100" id="{{ tempRes }}-anom-control">
+    {% if urlArgs.component == 'monitoring' %}
+    <select id="{{ tempRes }}-anom-variable" hidden>
+        <option value="{{ pageText.variables.select.keys() | first }}" selected>{{ pageText.variables.select.values() | first }}</option>
+    </select>
+    {% else %}
     <fieldset class="border border-secondary rounded-3 py-1">
         <legend class="legend-label">{{ pageText.variables.label }}</legend>
         <select id="{{ tempRes }}-anom-variable" class="form-select {{ tempRes }}-anom-select2" style="width: 200px;">
@@ -45,6 +86,7 @@
             {% endfor %}
         </select>
     </fieldset>
+    {% endif %}
     <fieldset class="border border-secondary rounded-3 py-1">
         {% if tempRes == 'seasonal' %}
         <legend class="legend-label">{{ pageText.opt_season.label_year.start }}</legend>
@@ -99,7 +141,7 @@
         </select>
     </fieldset>
     <fieldset id="{{ tempRes }}-chart-anom-tstep-list" class="border border-secondary rounded-3 py-1" style="display: none;">
-        {% if tempRes == 'seasonal'%}
+        {% if tempRes == 'seasonal' %}
         <legend class="legend-label">{{ pageText.opt_season.season_ts.start }}</legend>
         {% else %}
         <legend class="legend-label">{{ pageText.opt_ts_anom.label_tstep }}</legend>
@@ -509,6 +551,10 @@
             {% if key=='nao' and not pageText.display_nao %}
             {% continue %}
             {% endif %}
+            <!--  -->
+            {% if key=='atl3' and not pageText.display_atl3 %}
+            {% continue %}
+            {% endif %}
             <option value="{{key}}">{{value}}</option>
             {% endfor %}
         </select>
@@ -544,6 +590,10 @@
     <!-- NAO -->
     <div style="display: none;">
         <input id="{{ tempRes }}-nao-cdas" type="text" value="cdas_cpc">
+    </div>
+    <!-- ATL3 -->
+    <div style="display: none;">
+        <input id="{{ tempRes }}-atl3-cdas" type="text" value="cdas_cpc">
     </div>
     <!--  -->
     <fieldset id="{{ tempRes }}-anom-sstweek-opt" class="border border-secondary rounded-3 py-1" style="display: none;">
@@ -646,6 +696,10 @@
             {% endif %}
             <!--  -->
             {% if key=='nao' and not pageText.display_nao %}
+            {% continue %}
+            {% endif %}
+            <!--  -->
+            {% if key=='atl3' and not pageText.display_atl3 %}
             {% continue %}
             {% endif %}
             <option value="{{key}}">{{value}}</option>
@@ -791,5 +845,35 @@
             <span>{{ pageText.opt_wetday.text4 }}</span>
         </div>
     </fieldset>
+</div>
+{% endmacro %}
+<!--  -->
+{% macro create_expand_charts_cumul(tempRes, pageText, fmacros) %}
+<div class="container d-flex flex-wrap justify-content-start w-100" id="{{ tempRes }}-cumul-control">
+    <select id="{{ tempRes }}-chart-cumul-variable" hidden>
+        <option value="{{ pageText.variables.select.keys() | first }}" selected>{{ pageText.variables.select.values() | first }}</option>
+    </select>
+    <fieldset class="border border-secondary rounded-3 py-1">
+        <legend class="legend-label">{{ pageText.opt_dates.label }}</legend>
+        <div class="d-flex align-items-center gap-1">
+            <div>
+                {{ pageText.opt_dates.cumul }}
+            </div>
+            <div id="{{ tempRes }}-chart-cumul-startdate" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Start date" style="width: 8.0em">
+                <input id="{{ tempRes }}-chart-cumul-startdate-calendar" type="text" class="form-control">
+            </div>
+            <div>
+                {{ pageText.opt_dates.todate }}
+            </div>
+            <div id="{{ tempRes }}-chart-cumul-enddate" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="End date" style="width: 8.0em">
+                <input id="{{ tempRes }}-chart-cumul-enddate-calendar" type="text" class="form-control">
+            </div>
+        </div>
+    </fieldset>
+    <fieldset class="border border-secondary rounded-3 py-1">
+        <legend class="legend-label">{{ pageText.base_period_modal.label }}</legend>
+        <button id="{{ tempRes }}-chart-cumul-bp-open" type="button" class="btn btn-outline-secondary">{{ pageText.base_period_modal.button }}</button>
+    </fieldset>
+    {{ fmacros.baseline_period_dialog(tempRes ~ '-chart-cumul-bp', pageText) }}
 </div>
 {% endmacro %}

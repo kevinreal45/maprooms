@@ -496,6 +496,10 @@ def _download_ts_rawdata(params):
     values = np.array(values)
     values[values == miss] = np.nan
 
+    seasL = None
+    if params['temporalRes'] == 'seasonal':
+        seasL = params['seasLength']
+
     info = {
         'geom': {
             'name': json_data['data']['Data'][0]['Name'],
@@ -507,7 +511,8 @@ def _download_ts_rawdata(params):
             'units': json_data['data']['VariableUnits'],
             'type': params['variable']
         },
-        'time_res': params['temporalRes']
+        'time_res': params['temporalRes'],
+        'seas_len': seasL
     }
 
     return {

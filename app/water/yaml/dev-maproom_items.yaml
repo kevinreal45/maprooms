@@ -2,8 +2,26 @@ title:
     en: Climate and Water
     fr: Climat et Eau
 description: 
-    en: Historical, current and forecast water conditions around the country.
-    fr: Conditions hydrologiques historiques, actuelles et prévisionnelles dans tout le pays.
+    en: |
+        <p>
+        The <strong>Climate and Water Maproom</strong> enables users to analyze historical climate data, current observations, and future forecasts and climate projections at watershed and sub-watershed scales to support effective water resources assessment, planning, and management. 
+        </p>
+        <p>
+        By integrating information on rainfall, temperature, and other climate variables, the Maproom helps users evaluate water availability, monitor hydrological conditions, and assess climate-related risks to water systems. 
+        </p>
+        <p>
+        This maproom can inform  a wide range of applications, including reservoir and dam management, irrigation planning, flood and drought risk assessment, groundwater recharge monitoring, and water allocation for agriculture, domestic use, energy production, and ecosystem management. 
+        </p>
+    fr: |
+        <p>
+        La <strong>Maproom Climat et Eau</strong> permet aux utilisateurs d’analyser les données climatiques historiques, les observations actuelles, les prévisions futures et les projections climatiques à l’échelle des bassins et sous-bassins versants, afin de soutenir une évaluation, une planification et une gestion efficaces des ressources en eau.
+        </p>
+        <p>
+        En intégrant des informations sur les précipitations, les températures et d’autres variables climatiques, la Maproom aide les utilisateurs à évaluer la disponibilité des ressources en eau, à suivre les conditions hydrologiques et à analyser les risques climatiques auxquels les systèmes hydriques sont exposés.
+        </p>
+        <p>
+        Cette Maproom peut éclairer un large éventail d’applications, notamment la gestion des réservoirs et des barrages, la planification de l’irrigation, l’évaluation des risques d’inondation et de sécheresse, le suivi de la recharge des eaux souterraines ainsi que la répartition de l’eau entre l’agriculture, les usages domestiques, la production d’énergie et la gestion des écosystèmes.
+        </p>
 type: navigation-card
 # icon_image from /app/static/images/card_icons
 icon_image: default-emi_climate_water.gif

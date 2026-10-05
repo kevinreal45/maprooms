@@ -37,28 +37,7 @@ function dotPathsToNestedObject(flat) {
     return nested;
 }
 
-// ---------------------------------------------------------------------
-// tick-interval helpers
-//
-// The chart-settings popup lets the user type a manual tick interval for
-// either axis, on every expand-modal chart. Those charts don't all plot
-// the same kind of data on their axes - some are dates (Raw, Climato,
-// Anomaly, Enso, rainy-season onset/cessation...), some are whole-number
-// axes (a year axis, a count), some are floats (rainfall totals,
-// anomalies, probabilities...). A single "must be a positive number"
-// check doesn't know any of that apart, and that gap is what used to
-// freeze the tab: on a `type: 'date'` axis, Plotly reads a numeric dtick
-// as *milliseconds*, so a user typing "1" meaning "1 day" produced a
-// tick every millisecond across years of data - literally thousands of
-// ticks computed and rendered by Plotly, which is what stalls the page.
-// The helpers below make the tick input axis-aware (a date axis is
-// entered in days, not milliseconds; a whole-number axis rejects
-// fractional intervals) and bound the resulting tick count against how
-// many ticks the axis can actually fit on screen - not an arbitrary
-// large number - so no interval, on any axis type, can ever ask Plotly
-// to lay out more ticks than the chart has pixels for, on this chart or
-// any future one that goes through this same settings popup.
-// ---------------------------------------------------------------------
+
 
 const MS_PER_DAY = 86400000;
 // average calendar month, used only to size-check a month/year interval
@@ -75,11 +54,11 @@ const AVG_MONTH_MS = 30.436875 * MS_PER_DAY;
 // so they're plain milliseconds; months/years are calendar lengths, so
 // they use Plotly's own 'M<n>' dtick convention (n months) instead of an
 // approximate day count - that's what keeps ticks landing on real month/
-// year boundaries instead of drifting.
+
 const TICK_INTERVAL_UNITS = [
-    { value: 'day', label: 'Days', approxMs: MS_PER_DAY, wholeOnly: false,
+    { value: 'day', label: 'Days', approxMs: MS_PER_DAY, wholeOnly: true,
         toDtick: n => n * MS_PER_DAY },
-    { value: 'week', label: 'Weeks', approxMs: 7 * MS_PER_DAY, wholeOnly: false,
+    { value: 'week', label: 'Weeks', approxMs: 7 * MS_PER_DAY, wholeOnly: true,
         toDtick: n => n * 7 * MS_PER_DAY },
     { value: 'month', label: 'Months', approxMs: AVG_MONTH_MS, wholeOnly: true,
         toDtick: n => `M${n}` },
@@ -89,6 +68,62 @@ const TICK_INTERVAL_UNITS = [
 
 function getTickIntervalUnit(unitValue) {
     return TICK_INTERVAL_UNITS.find(u => u.value === unitValue) || TICK_INTERVAL_UNITS[0];
+}
+
+// true for any keystroke that could be part of a valid tick interval
+function isTickIntervalControlKey(event) {
+    if (event.ctrlKey || event.metaKey || event.altKey) {
+        return true;
+    }
+    return [
+        'Backspace', 'Delete', 'Tab', 'Enter', 'Escape',
+        'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'
+    ].includes(event.key);
+}
+
+
+// rejects any keystroke that would make the tick-interval field invalid:
+function handleTickIntervalKeydown(event, wholeOnly) {
+    if (isTickIntervalControlKey(event) || event.key.length !== 1) {
+        return;
+    }
+    const isDigit = event.key >= '0' && event.key <= '9';
+    const isLeadingDecimalPoint = !wholeOnly && event.key === '.' &&
+        !event.target.value.includes('.');
+    if (!isDigit && !isLeadingDecimalPoint) {
+        event.preventDefault();
+    }
+}
+// strips out any non-digit/non-decimal-point characters from a tick-interval field's value, and optionally strips out any decimal point at all for a whole-number-only axis. 
+function sanitizeTickIntervalText(value, wholeOnly) {
+    const digitsAndDots = value.replace(/[^0-9.]/g, '');
+    if (wholeOnly) {
+        return digitsAndDots.replace(/\./g, '');
+    }
+    const firstDot = digitsAndDots.indexOf('.');
+    if (firstDot === -1) {
+        return digitsAndDots;
+    }
+    return digitsAndDots.slice(0, firstDot + 1) +
+        digitsAndDots.slice(firstDot + 1).replace(/\./g, '');
+}
+
+//
+function sanitizeTickIntervalInput(input, wholeOnly) {
+    const el = input.get(0);
+    const cleaned = sanitizeTickIntervalText(el.value, wholeOnly);
+    if (cleaned === el.value) {
+        return;
+    }
+    const caret = el.selectionStart;
+    const removedBeforeCaret = caret === null
+        ? 0
+        : el.value.slice(0, caret).length - sanitizeTickIntervalText(el.value.slice(0, caret), wholeOnly).length;
+    el.value = cleaned;
+    if (caret !== null) {
+        const pos = Math.max(0, caret - removedBeforeCaret);
+        el.setSelectionRange(pos, pos);
+    }
 }
 
 // Plotly needs roughly this many horizontal/vertical pixels per tick
@@ -101,13 +136,20 @@ const MIN_PIXELS_PER_TICK = 32;
 // after the chart has already been drawn once)
 const FALLBACK_MAX_TICKS = 60;
 
-// resolves an axis's effective type ('date', 'linear', 'log',
-// 'category', ...). graph._fullLayout holds Plotly's *resolved* type,
-// filled in after every render - that's needed because some charts
-// never declare `type: 'date'` on the layout literal and instead let
-// Plotly infer it from the plotted values (e.g. the rainy-season
-// onset/cessation view plots real Date objects but never sets
-// xaxis.type), so checking graph.layout alone would miss those.
+// returns the axis name as Plotly's dtick/resolved layout uses it: 'x', 'y', or 'y2' for a second Y axis. 
+function plotlyAxisFieldSide(axisName) {
+    if (axisName === 'yaxis2') {
+        return 'y2';
+    }
+    return axisName === 'xaxis' ? 'x' : 'y';
+}
+
+// true only when this chart has a second Y axis (yaxis2) in use, so the dialog can show the right field for it.
+function plotlyChartHasSecondYAxis(graph) {
+    return (graph.data || []).some(trace => trace.yaxis === 'y2');
+}
+
+
 function getPlotlyAxisType(graph, axisName) {
     const resolvedType = graph._fullLayout?.[axisName]?.type;
     if (resolvedType && resolvedType !== '-') {
@@ -128,13 +170,27 @@ function getPlotlyAxisType(graph, axisName) {
     return looksLikeDate ? 'date' : 'linear';
 }
 
-// classifies a non-date axis as 'integer' or 'float', so a whole-number
-// axis (a year, a count of events...) can reject a fractional tick
-// interval that wouldn't land on any real value. Prefers the axis's own
-// pre-set tickvals when present (the chart author's own signal of what
-// "a valid position on this axis" looks like); falls back to sampling
-// the plotted data otherwise.
+
+function resolvePlotlyAxisKind(graph, axisName) {
+    const resolver = plotlyChartAxisKindResolvers[graph.id];
+    const resolved = typeof resolver === 'function' ? resolver(axisName) : null;
+    if (!resolved) {
+        return null;
+    }
+    return typeof resolved === 'string' ? { kind: resolved } : resolved;
+}
+
+
 function getPlotlyAxisNumberKind(graph, axisName) {
+    const resolvedKind = resolvePlotlyAxisKind(graph, axisName)?.kind ?? null;
+ 
+    if (resolvedKind === 'integer' || resolvedKind === 'year') {
+        return 'integer';
+    }
+    if (resolvedKind === 'float') {
+        return resolvedKind;
+    }
+
     const key = axisName === 'xaxis' ? 'x' : 'y';
     const explicitTicks = graph.layout?.[axisName]?.tickvals;
     const sample = Array.isArray(explicitTicks) && explicitTicks.length
@@ -144,18 +200,26 @@ function getPlotlyAxisNumberKind(graph, axisName) {
     return numeric.length && numeric.every(Number.isInteger) ? 'integer' : 'float';
 }
 
-// the axis's own rendered length in pixels, straight from Plotly's
-// resolved layout - the real-world constraint on how many ticks can
-// actually fit without overlapping
+
+function isPlotlyAxisYearKind(graph, axisName) {
+    return resolvePlotlyAxisKind(graph, axisName)?.kind === 'year';
+}
+
+
+function getPlotlyAxisUnitLabel(graph, axisName) {
+    const resolved = resolvePlotlyAxisKind(graph, axisName);
+    return resolved?.kind === 'integer' && typeof resolved.unit === 'string' && resolved.unit
+        ? resolved.unit
+        : null;
+}
+
+
 function getPlotlyAxisPixelLength(graph, axisName) {
     const length = graph._fullLayout?.[axisName]?._length;
     return Number.isFinite(length) && length > 0 ? length : null;
 }
 
-// how many manual ticks this axis can hold before labels start
-// overlapping - this, not a flat number, is what makes a runaway
-// interval structurally impossible: even the smallest allowed interval
-// can only ever ask for as many ticks as the chart has pixels for
+// the maximum number of ticks that can fit on this axis without overlapping, based on its current pixel length and MIN_PIXELS_PER_TICK.
 function getPlotlyAxisMaxTicks(graph, axisName) {
     const pixelLength = getPlotlyAxisPixelLength(graph, axisName);
     return pixelLength
@@ -196,35 +260,50 @@ function clampTickInterval(candidate, rangeSpan, maxTicks) {
     return candidate;
 }
 
-// smallest interval that still respects getPlotlyAxisMaxTicks, in
-// whatever unit the tick-interval *input field* currently displays (a
-// TICK_INTERVAL_UNITS entry for a date axis, raw units otherwise) - used
-// only to hint the field's `min` attribute, not as the authoritative
-// check (clampTickInterval is)
+
 function getPlotlyAxisMinDisplayInterval(graph, axisName, isDate, unitValue) {
     const rangeSpan = getPlotlyAxisRangeSpan(graph, axisName, isDate);
     if (rangeSpan <= 0) {
         return null;
     }
     const maxTicks = getPlotlyAxisMaxTicks(graph, axisName);
-    const minInternalMs = rangeSpan / maxTicks;
-    if (!isDate) {
-        return Math.ceil(minInternalMs * 100) / 100;
+    const minInternal = rangeSpan / maxTicks;
+    if (isDate) {
+        const unit = getTickIntervalUnit(unitValue);
+        const minDisplay = minInternal / unit.approxMs;
+        // round up (never down) so the hinted minimum is never itself
+        // rejected by clampTickInterval due to display rounding
+        return unit.wholeOnly ? Math.max(1, Math.ceil(minDisplay)) : Math.ceil(minDisplay * 100) / 100;
     }
-    const unit = getTickIntervalUnit(unitValue);
-    const minDisplay = minInternalMs / unit.approxMs;
-    // round up (never down) so the hinted minimum is never itself
-    // rejected by clampTickInterval due to display rounding
-    return unit.wholeOnly ? Math.max(1, Math.ceil(minDisplay)) : Math.ceil(minDisplay * 100) / 100;
+    const wholeOnly = getPlotlyAxisNumberKind(graph, axisName) === 'integer';
+    return wholeOnly ? Math.max(1, Math.ceil(minInternal)) : Math.ceil(minInternal * 100) / 100;
 }
 
-// picks the best-fitting unit + magnitude to show in the tick-interval
-// field for a date axis: decodes an existing dtick (either Plotly's own
-// 'M<n>' month/year string, or a plain ms number for days/weeks) back
-// into one of TICK_INTERVAL_UNITS; with no dtick set yet (Auto), picks a
-// sensible default unit from the axis's own span instead of always
-// defaulting to "Days" (a 40-year chart defaulting to "Days" would just
-// make the user do the years-to-days math themselves).
+
+function tickIntervalExceedsBudget(graph, axisName, value, unitValue) {
+    const trimmed = value.trim();
+    if (!trimmed) {
+        return false;
+    }
+    const numeric = Number(trimmed);
+    if (!Number.isFinite(numeric) || numeric <= 0) {
+        return false;
+    }
+    const isDate = getPlotlyAxisType(graph, axisName) === 'date';
+    const maxTicks = getPlotlyAxisMaxTicks(graph, axisName);
+    if (isDate) {
+        const unit = getTickIntervalUnit(unitValue);
+        if (unit.wholeOnly && !Number.isInteger(numeric)) {
+            return false;
+        }
+        const rangeSpan = getPlotlyAxisRangeSpan(graph, axisName, true);
+        return clampTickInterval(numeric * unit.approxMs, rangeSpan, maxTicks) === null;
+    }
+    const rangeSpan = getPlotlyAxisRangeSpan(graph, axisName, false);
+    return clampTickInterval(numeric, rangeSpan, maxTicks) === null;
+}
+
+
 function decomposeDateDtick(dtick, rangeSpanMs) {
     if (typeof dtick === 'string') {
         const match = /^M(\d+)$/.exec(dtick);
@@ -270,18 +349,50 @@ function plotlyColorInputValue(color, fallback = '#0d6efd') {
     return fallback;
 }
 
-// auto-capitalize a text input (title, axis labels) as the user types,
-function capitalizePlotlyTextInput(input) {
+
+const PLOTLY_TEXT_MAX_WORDS = 12;
+const PLOTLY_TEXT_MAX_CHARS = 120;
+
+function countPlotlyTextWords(value) {
+    return value.split(/\s+/).filter(Boolean).length;
+}
+
+
+function limitPlotlyTextValue(value) {
+    const words = value.split(/\s+/).filter(Boolean);
+    const limited = words.length <= PLOTLY_TEXT_MAX_WORDS
+        ? value
+        : words.slice(0, PLOTLY_TEXT_MAX_WORDS).join(' ');
+
+    return limited.slice(0, PLOTLY_TEXT_MAX_CHARS);
+}
+
+
+function updatePlotlyTextWarning(input) {
     const el = input.get(0);
-    const start = el.selectionStart;
-    const end = el.selectionEnd;
-    const capitalized = el.value.charAt(0).toUpperCase() + el.value.slice(1);
-    if (capitalized !== el.value) {
-        el.value = capitalized;
-        if (start !== null) {
-            el.setSelectionRange(start, end);
-        }
-    }
+    $(`#${el.id}-warning`).toggleClass(
+        'd-none', countPlotlyTextWords(el.value) <= PLOTLY_TEXT_MAX_WORDS
+    );
+}
+
+
+function buildPlotlyTextField(id) {
+    return $('<input>', {
+        id,
+        type: 'text',
+        class: 'form-control form-control-sm',
+        maxlength: PLOTLY_TEXT_MAX_CHARS,
+        title: `Up to ${PLOTLY_TEXT_MAX_WORDS} words`
+    }).on('input', function() { updatePlotlyTextWarning($(this)); });
+}
+
+
+function buildPlotlyTextWarning(id) {
+    return $('<div>', {
+        id: `${id}-warning`,
+        class: 'form-text text-warning-emphasis d-none',
+        text: `Only the first ${PLOTLY_TEXT_MAX_WORDS} words will be used.`
+    });
 }
 
 function plotlyAxisTitle(axis) {
@@ -302,25 +413,49 @@ const PLOTLY_TITLE_FONTS = [
     { value: '"Trebuchet MS", sans-serif', label: 'Trebuchet MS' }
 ];
 
-// lines (trend/mean/median...)thickness
 
-function appendTraceWidthInput(id, label, width) {
+const PLOTLY_LINE_WIDTH_LIMITS = { min: 1, max: 12 };
+const PLOTLY_MARKER_SIZE_LIMITS = { min: 2, max: 24 };
+const PLOTLY_TITLE_SIZE_LIMITS = { min: 8, max: 40 };
+
+
+const PLOTLY_DEFAULT_LINE_WIDTH = 2;
+const PLOTLY_DEFAULT_MARKER_SIZE = 6;
+
+
+function clampPlotlySize(value, limits) {
+    if (!Number.isFinite(value)) {
+        return null;
+    }
+    return Math.min(limits.max, Math.max(limits.min, Math.round(value)));
+}
+
+
+function appendTraceSizeInput(id, label, value, kind) {
+    const isMarker = kind === 'marker';
+    const limits = isMarker ? PLOTLY_MARKER_SIZE_LIMITS : PLOTLY_LINE_WIDTH_LIMITS;
+    const what = isMarker ? 'Point size' : 'Line thickness';
     return $('<input>', {
         id: `${id}-width`,
         type: 'number',
-        min: 1,
+        min: limits.min,
+        max: limits.max,
         step: 1,
         class: 'form-control form-control-sm plotly-trace-width',
         style: 'width: 62px;',
-        value: width,
-        title: `Line thickness for ${label}`
+        value,
+        title: `${what} for ${label} (${limits.min}-${limits.max})`
     });
 }
 
-function appendTraceColorSwatch(colorsContainer, id, label, color, traceIndex, part, width) {
+
+function appendTraceColorSwatch(colorsContainer, id, label, color, traceIndex, part, size, sizable = true) {
     const controls = [];
-    if (part === 'line' && typeof width === 'number') {
-        controls.push(appendTraceWidthInput(id, label, width));
+    if ((part === 'line' || part === 'marker') && sizable) {
+        const resolvedSize = typeof size === 'number'
+            ? size
+            : (part === 'marker' ? PLOTLY_DEFAULT_MARKER_SIZE : PLOTLY_DEFAULT_LINE_WIDTH);
+        controls.push(appendTraceSizeInput(id, label, resolvedSize, part));
     }
     controls.push(
         $('<input>', {
@@ -354,22 +489,24 @@ const defaultTraceColorsModule = {
             const name = trace.name || `Series ${index + 1}`;
             const hasLineColor = typeof trace.line?.color === 'string';
             const hasMarkerColor = typeof trace.marker?.color === 'string';
+            const sizable = trace.type !== 'bar';
 
             if (hasLineColor && hasMarkerColor) {
                 appendTraceColorSwatch(
                     colorsContainer, `${dialogID}-color-${index}-line`,
-                    `${name} — Line`, trace.line.color, index, 'line', trace.line.width
+                    `${name} — Line`, trace.line.color, index, 'line', trace.line.width, sizable
                 );
                 appendTraceColorSwatch(
                     colorsContainer, `${dialogID}-color-${index}-marker`,
-                    `${name} — Points`, trace.marker.color, index, 'marker'
+                    `${name} — Points`, trace.marker.color, index, 'marker', trace.marker.size, sizable
                 );
             } else {
                 appendTraceColorSwatch(
                     colorsContainer, `${dialogID}-color-${index}`, name,
                     hasLineColor ? trace.line.color : trace.marker?.color,
                     index, hasLineColor ? 'line' : 'marker',
-                    hasLineColor ? trace.line.width : undefined
+                    hasLineColor ? trace.line.width : trace.marker?.size,
+                    sizable
                 );
             }
         });
@@ -385,16 +522,25 @@ const defaultTraceColorsModule = {
             }
             const color = $(this).val();
             Plotly.restyle(graph, { [`${part}.color`]: color }, [traceIndex]);
-            // keyed by name (not index) so it can be matched back up
-            // after a redraw where trace order/count may have changed
+
             const name = trace.name || `Series ${traceIndex + 1}`;
             colors[`${name}|${part}`] = color;
 
             if (part === 'line') {
-                const width = Number($(`#${$(this).attr('id')}-width`).val());
-                if (Number.isFinite(width) && width > 0) {
+                const width = clampPlotlySize(
+                    Number($(`#${$(this).attr('id')}-width`).val()), PLOTLY_LINE_WIDTH_LIMITS
+                );
+                if (width !== null) {
                     Plotly.restyle(graph, { 'line.width': width }, [traceIndex]);
                     colors[`${name}|line-width`] = width;
+                }
+            } else if (part === 'marker') {
+                const size = clampPlotlySize(
+                    Number($(`#${$(this).attr('id')}-width`).val()), PLOTLY_MARKER_SIZE_LIMITS
+                );
+                if (size !== null) {
+                    Plotly.restyle(graph, { 'marker.size': size }, [traceIndex]);
+                    colors[`${name}|marker-size`] = size;
                 }
             }
         });
@@ -417,6 +563,10 @@ const defaultTraceColorsModule = {
             const width = colors[`${name}|line-width`];
             if (typeof width === 'number') {
                 Plotly.restyle(graph, { 'line.width': width }, [index]);
+            }
+            const size = colors[`${name}|marker-size`];
+            if (typeof size === 'number') {
+                Plotly.restyle(graph, { 'marker.size': size }, [index]);
             }
         });
     }
@@ -492,17 +642,7 @@ const anomalySignColorsModule = {
     }
 };
 
-// for a bar chart whose per-bar color comes from a small, fixed set of
-// category values (e.g. a discrete score/index) rather than a sign split
-// (that's anomalySignColorsModule above) or one color per trace (that's
-// defaultTraceColorsModule) - e.g. the crop-suitability chart, whose bars
-// are colored from a 6-step score palette (0-5) plus a "no data" gray.
-// Categories are read from each point's `customdata` (the chart's raw,
-// pre-color value, since `y` itself may be adjusted for display - e.g.
-// crop suitability nudges a 0 score up to 0.08 so the bar is still
-// visible), paired with that point's current `marker.color`, so this
-// works for any chart following the pattern without hardcoding how many
-// categories there are or what colors they start as.
+
 const categoricalMarkerColorsModule = {
     populate(colorsContainer, dialogID, graph) {
         const trace = graph.data[0];
@@ -561,8 +701,7 @@ const categoricalMarkerColorsModule = {
 
         return colorByKey;
     },
-    // reapply saved per-category colors onto a chart that was just
-    // (re)plotted
+   
     restore(colors, graph) {
         if (!colors) {
             return;
@@ -581,35 +720,179 @@ const categoricalMarkerColorsModule = {
     }
 };
 
-// to store the saved settings for each chart by its ID, so they can be reapplied after a redraw
+// for telecom tercile bar charts
+const telecomTercileBarColorsModule = {
+    populate(colorsContainer, dialogID, graph) {
+        graph.data.forEach((trace, index) => {
+            if (trace.visible === false || trace.visible === 'legendonly') {
+                return;
+            }
+            if (trace.meta?.categoryKey !== undefined) {
+                appendTraceColorSwatch(
+                    colorsContainer, `${dialogID}-color-cat-${trace.meta.categoryKey}`,
+                    trace.name, trace.marker?.color, index, 'category'
+                );
+                return;
+            }
+
+            if (Array.isArray(trace.marker?.color) && trace.customdata) {
+                return;
+            }
+            const name = trace.name || `Series ${index + 1}`;
+            const hasLineColor = typeof trace.line?.color === 'string';
+            const hasMarkerColor = typeof trace.marker?.color === 'string';
+            if (hasLineColor || hasMarkerColor) {
+                appendTraceColorSwatch(
+                    colorsContainer, `${dialogID}-color-${index}`, name,
+                    hasLineColor ? trace.line.color : trace.marker.color,
+                    index, hasLineColor ? 'line' : 'marker',
+                    hasLineColor ? trace.line.width : trace.marker.size,
+                    trace.type !== 'bar'
+                );
+            }
+        });
+    },
+    apply(dialogID, graph) {
+        const colors = {};
+        const barTrace = graph.data.find(t => Array.isArray(t.marker?.color) && t.customdata);
+        const classes = barTrace?.customdata || [];
+        const newColorByKey = {};
+
+        $(`#${dialogID} .plotly-trace-color`).each(function() {
+            const traceIndex = Number($(this).data('trace-index'));
+            const part = $(this).data('trace-part');
+            const trace = graph.data[traceIndex];
+            if (!trace) {
+                return;
+            }
+            const color = $(this).val();
+
+            if (part === 'category') {
+                const key = String(trace.meta.categoryKey);
+                newColorByKey[key] = color;
+                Plotly.restyle(graph, { 'marker.color': color }, [traceIndex]);
+                colors[`category|${key}`] = color;
+                return;
+            }
+
+            Plotly.restyle(graph, { [`${part}.color`]: color }, [traceIndex]);
+            const name = trace.name || `Series ${traceIndex + 1}`;
+            colors[`${name}|${part}`] = color;
+            if (part === 'line') {
+                const width = clampPlotlySize(
+                    Number($(`#${$(this).attr('id')}-width`).val()), PLOTLY_LINE_WIDTH_LIMITS
+                );
+                if (width !== null) {
+                    Plotly.restyle(graph, { 'line.width': width }, [traceIndex]);
+                    colors[`${name}|line-width`] = width;
+                }
+            } else if (part === 'marker') {
+                const size = clampPlotlySize(
+                    Number($(`#${$(this).attr('id')}-width`).val()), PLOTLY_MARKER_SIZE_LIMITS
+                );
+                if (size !== null) {
+                    Plotly.restyle(graph, { 'marker.size': size }, [traceIndex]);
+                    colors[`${name}|marker-size`] = size;
+                }
+            }
+        });
+
+        if (barTrace && Object.keys(newColorByKey).length) {
+            const oldColors = Array.isArray(barTrace.marker?.color) ? barTrace.marker.color : [];
+            const newBarColors = classes.map((c, i) => newColorByKey[String(c)] ?? oldColors[i]);
+            Plotly.restyle(graph, { 'marker.color': [newBarColors] }, [graph.data.indexOf(barTrace)]);
+        }
+
+        return colors;
+    },
+
+    restore(colors, graph) {
+        if (!colors) {
+            return;
+        }
+        const barTrace = graph.data.find(t => Array.isArray(t.marker?.color) && t.customdata);
+        const classes = barTrace?.customdata || [];
+        const oldColors = Array.isArray(barTrace?.marker?.color) ? barTrace.marker.color : [];
+        const newColorByKey = {};
+
+        graph.data.forEach((trace, index) => {
+            if (trace.meta?.categoryKey !== undefined) {
+                const key = String(trace.meta.categoryKey);
+                const color = colors[`category|${key}`];
+                if (color) {
+                    newColorByKey[key] = color;
+                    Plotly.restyle(graph, { 'marker.color': color }, [index]);
+                }
+                return;
+            }
+            const name = trace.name || `Series ${index + 1}`;
+            ['line', 'marker'].forEach((part) => {
+                const color = colors[`${name}|${part}`];
+                if (color) {
+                    Plotly.restyle(graph, { [`${part}.color`]: color }, [index]);
+                }
+            });
+            const width = colors[`${name}|line-width`];
+            if (typeof width === 'number') {
+                Plotly.restyle(graph, { 'line.width': width }, [index]);
+            }
+            const size = colors[`${name}|marker-size`];
+            if (typeof size === 'number') {
+                Plotly.restyle(graph, { 'marker.size': size }, [index]);
+            }
+        });
+
+        if (barTrace && Object.keys(newColorByKey).length) {
+            const newBarColors = classes.map((c, i) => newColorByKey[String(c)] ?? oldColors[i]);
+            Plotly.restyle(graph, { 'marker.color': [newBarColors] }, [graph.data.indexOf(barTrace)]);
+        }
+    }
+};
+
+
 const plotlyChartSettingsStore = {};
 
 // to store the colors module for each chart by its ID, so the correct module can be used to restore colors after a redraw
 const plotlyChartSettingsModules = {};
 
-// chartID -> that chart's xaxis/yaxis dtick+tickvals+ticktext exactly as
-// they were server-authored, captured fresh every time the chart is
-// redrawn with new/changed data (never when a settings-driven redraw
-// happens - see isApplyingPlotlyTickSettings below). This is what
-// "Auto" restores to when the user clears a manual tick interval -
-// including on an axis whose own baked-in default was itself a manual
-// dtick (e.g. Climato/Telecon set `dtick: 'M1'`/`dtick: 5` directly, not
-// through this dialog), which would otherwise get wiped to null the
-// first time the field is touched at all, even without typing anything
-// invalid in it.
+const plotlyChartAxisKindResolvers = {};
+const plotlyChartSettingsCaseKeyResolvers = {};
+const PLOTLY_CHART_DEFAULT_CASE_KEY = '__default__';
+
+// the case key to store/restore settings under for chartID right now -
+// see plotlyChartSettingsCaseKeyResolvers above
+function getCurrentPlotlyChartCaseKey(chartID) {
+    const resolver = plotlyChartSettingsCaseKeyResolvers[chartID];
+    if (typeof resolver !== 'function') {
+        return PLOTLY_CHART_DEFAULT_CASE_KEY;
+    }
+    const caseKey = resolver();
+    return (typeof caseKey === 'string' && caseKey) ? caseKey : PLOTLY_CHART_DEFAULT_CASE_KEY;
+}
+
+
+const plotlyChartDisallowedTickUnits = {};
+
+
+function nearestAllowedTickUnit(chartID, guessedUnit) {
+    const disallowed = plotlyChartDisallowedTickUnits[chartID] || [];
+    if (!disallowed.includes(guessedUnit)) {
+        return guessedUnit;
+    }
+    const fallback = TICK_INTERVAL_UNITS.find(u => !disallowed.includes(u.value));
+    return fallback ? fallback.value : guessedUnit;
+}
+
+
 const plotlyChartOriginalTickArrays = {};
 
-// true only for the instant applySettings() itself is pushing a manual
-// dtick/title/label change through Plotly.newPlot(). Lets the newPlot
-// wrapper below tell that redraw (which must NOT overwrite the cache
-// above with its own dtick-only, tickvals-cleared layout) apart from a
-// genuine data-driven redraw (variable/date-range change, initial
-// draw...), which SHOULD refresh the cache with whatever tick config the
-// newly plotted data came with.
+
 let isApplyingPlotlyTickSettings = false;
 
 function snapshotPlotlyAxisTickArrays(gd) {
-    plotlyChartOriginalTickArrays[gd.id] = {
+    const caseKey = getCurrentPlotlyChartCaseKey(gd.id);
+    plotlyChartOriginalTickArrays[gd.id] = plotlyChartOriginalTickArrays[gd.id] || {};
+    plotlyChartOriginalTickArrays[gd.id][caseKey] = {
         xaxis: {
             dtick: gd.layout.xaxis?.dtick ?? null,
             tickvals: gd.layout.xaxis?.tickvals ?? null,
@@ -619,29 +902,146 @@ function snapshotPlotlyAxisTickArrays(gd) {
             dtick: gd.layout.yaxis?.dtick ?? null,
             tickvals: gd.layout.yaxis?.tickvals ?? null,
             ticktext: gd.layout.yaxis?.ticktext ?? null
+        },
+     
+        yaxis2: {
+            dtick: gd.layout.yaxis2?.dtick ?? null,
+            tickvals: gd.layout.yaxis2?.tickvals ?? null,
+            ticktext: gd.layout.yaxis2?.ticktext ?? null
         }
     };
 }
 
-function savePlotlyChartSettings(chartID, settings) {
-    plotlyChartSettingsStore[chartID] = settings;
+
+const plotlyChartDefaults = {};
+
+function snapshotPlotlyChartDefaults(gd) {
+    const caseKey = getCurrentPlotlyChartCaseKey(gd.id);
+    const layout = gd.layout || {};
+    const copy = value => (Array.isArray(value) ? value.slice() : value);
+
+    plotlyChartDefaults[gd.id] = plotlyChartDefaults[gd.id] || {};
+    plotlyChartDefaults[gd.id][caseKey] = {
+        title: {
+            text: layout.title?.text ?? null,
+            color: layout.title?.font?.color ?? null,
+            family: layout.title?.font?.family ?? null,
+            size: layout.title?.font?.size ?? null
+        },
+        axisTitles: {
+            xaxis: plotlyAxisTitle(layout.xaxis) || null,
+            yaxis: plotlyAxisTitle(layout.yaxis) || null,
+            yaxis2: plotlyAxisTitle(layout.yaxis2) || null
+        },
+        // store the original line/marker colors and sizes for each trace, so they can be restored on reset
+        traces: (gd.data || []).map(trace => ({
+            'line.color': copy(trace.line?.color) ?? null,
+            'line.width': copy(trace.line?.width) ?? null,
+            'marker.color': copy(trace.marker?.color) ?? null,
+            'marker.size': copy(trace.marker?.size) ?? null
+        }))
+    };
 }
 
-function getPlotlyChartSettings(chartID) {
-    return plotlyChartSettingsStore[chartID] || null;
+function resetPlotlyChartToDefaults(gd) {
+    const caseKey = getCurrentPlotlyChartCaseKey(gd.id);
+    if (plotlyChartSettingsStore[gd.id]) {
+        delete plotlyChartSettingsStore[gd.id][caseKey];
+    }
+
+    const defaults = plotlyChartDefaults[gd.id]?.[caseKey];
+    if (!defaults) {
+        return false;
+    }
+
+    const originalTicks = plotlyChartOriginalTickArrays[gd.id]?.[caseKey] || {};
+    const layoutUpdate = {
+        'title.text': defaults.title.text,
+        'title.font.color': defaults.title.color,
+        'title.font.family': defaults.title.family,
+        'title.font.size': defaults.title.size,
+        'xaxis.title.text': defaults.axisTitles.xaxis,
+        'yaxis.title.text': defaults.axisTitles.yaxis,
+        'yaxis2.title.text': defaults.axisTitles.yaxis2
+    };
+    ['xaxis', 'yaxis', 'yaxis2'].forEach(axisName => {
+        const original = originalTicks[axisName] || {};
+        layoutUpdate[`${axisName}.dtick`] = original.dtick ?? null;
+        layoutUpdate[`${axisName}.tickmode`] = null;
+        layoutUpdate[`${axisName}.tickvals`] = original.tickvals ?? null;
+        layoutUpdate[`${axisName}.ticktext`] = original.ticktext ?? null;
+    });
+    Plotly.relayout(gd, layoutUpdate);
+
+    const traceCount = (gd.data || []).length;
+    defaults.traces.forEach((style, index) => {
+        if (index >= traceCount) {
+            return;
+        }
+
+        Plotly.restyle(gd, {
+            'line.color': [style['line.color']],
+            'line.width': [style['line.width']],
+            'marker.color': [style['marker.color']],
+            'marker.size': [style['marker.size']]
+        }, [index]);
+    });
+    return true;
 }
 
-// reapply any saved customization to a chart that was just plotted
+function savePlotlyChartSettings(chartID, caseKey, settings) {
+    plotlyChartSettingsStore[chartID] = plotlyChartSettingsStore[chartID] || {};
+    plotlyChartSettingsStore[chartID][caseKey] = settings;
+}
+
+function getPlotlyChartSettings(chartID, caseKey) {
+    return plotlyChartSettingsStore[chartID]?.[caseKey] || null;
+}
+
+function dtickApproxMs(dtick) {
+    if (dtick === null || dtick === undefined) {
+        return null;
+    }
+    const decomposed = decomposeDateDtick(dtick, 0);
+    if (!decomposed || decomposed.magnitude === null) {
+        return null;
+    }
+    return decomposed.magnitude * getTickIntervalUnit(decomposed.unit).approxMs;
+}
+
+
+function isStoredDtickWithinBudget(gd, axisName, dtick) {
+    const isDate = getPlotlyAxisType(gd, axisName) === 'date';
+    const approxValue = isDate
+        ? dtickApproxMs(dtick)
+        : (typeof dtick === 'number' && Number.isFinite(dtick) ? dtick : null);
+    if (approxValue === null) {
+        return true;
+    }
+    const rangeSpan = getPlotlyAxisRangeSpan(gd, axisName, isDate);
+    const maxTicks = getPlotlyAxisMaxTicks(gd, axisName);
+    return clampTickInterval(approxValue, rangeSpan, maxTicks) !== null;
+}
+
+
 function reapplyPlotlyChartSettings(gd) {
     if (!gd || !gd.id) {
         return;
     }
-    const settings = getPlotlyChartSettings(gd.id);
+    const caseKey = getCurrentPlotlyChartCaseKey(gd.id);
+    const settings = getPlotlyChartSettings(gd.id, caseKey);
     if (!settings) {
         return;
     }
     if (settings.layout) {
-        Plotly.relayout(gd, settings.layout);
+        const layoutToApply = budgetSafeTickLayout(gd, caseKey, settings.layout);
+  
+        if (layoutToApply['title.font.color']) {
+            layoutToApply['title.font.color'] = themeAwareTitleColor(
+                layoutToApply['title.font.color'], $('html').attr('data-bs-theme')
+            );
+        }
+        Plotly.relayout(gd, layoutToApply);
     }
     if (settings.colors) {
         const colorsModule = plotlyChartSettingsModules[gd.id] || defaultTraceColorsModule;
@@ -649,14 +1049,67 @@ function reapplyPlotlyChartSettings(gd) {
     }
 }
 
-// wrap Plotly.newPlot to reapply saved settings after a redraw
-// for the same chart, and to reattach the rangeslider title position fix
+
+function budgetSafeTickLayout(gd, caseKey, storedLayout) {
+    const layoutToApply = { ...storedLayout };
+    const originalTicks = (plotlyChartOriginalTickArrays[gd.id] || {})[caseKey] || {};
+    ['xaxis', 'yaxis', 'yaxis2'].forEach(axisName => {
+        const dtickKey = `${axisName}.dtick`;
+        const storedDtick = layoutToApply[dtickKey];
+        if (storedDtick == null || isStoredDtickWithinBudget(gd, axisName, storedDtick)) {
+            return;
+        }
+
+        const original = originalTicks[axisName] || {};
+        layoutToApply[dtickKey] = original.dtick ?? null;
+        layoutToApply[`${axisName}.tickmode`] = null;
+        layoutToApply[`${axisName}.tickvals`] = original.tickvals ?? null;
+        layoutToApply[`${axisName}.ticktext`] = original.ticktext ?? null;
+    });
+    return layoutToApply;
+}
+
+function enforceTickBudgetOnRangeChange(gd, eventData) {
+    if (isApplyingPlotlyTickSettings || !gd || !gd.id || !eventData) {
+        return;
+    }
+    const changedRange = Object.keys(eventData).some(key =>
+        key.endsWith('.range') || key.endsWith('.range[0]') ||
+        key.endsWith('.range[1]') || key.endsWith('.autorange')
+    );
+    if (!changedRange) {
+        return;
+    }
+    const caseKey = getCurrentPlotlyChartCaseKey(gd.id);
+    const settings = getPlotlyChartSettings(gd.id, caseKey);
+    if (!settings || !settings.layout) {
+        return;
+    }
+    const corrected = budgetSafeTickLayout(gd, caseKey, settings.layout);
+
+    const correction = {};
+    ['xaxis', 'yaxis', 'yaxis2'].forEach(axisName => {
+        const dtickKey = `${axisName}.dtick`;
+        if (corrected[dtickKey] !== settings.layout[dtickKey]) {
+            correction[dtickKey] = corrected[dtickKey];
+            correction[`${axisName}.tickmode`] = corrected[`${axisName}.tickmode`];
+            correction[`${axisName}.tickvals`] = corrected[`${axisName}.tickvals`];
+            correction[`${axisName}.ticktext`] = corrected[`${axisName}.ticktext`];
+        }
+    });
+    if (Object.keys(correction).length > 0) {
+        Plotly.relayout(gd, correction);
+    }
+}
+
 (function(nativeNewPlot) {
     Plotly.newPlot = function(...args) {
         return nativeNewPlot.apply(Plotly, args).then((gd) => {
             gd.on('plotly_afterplot', () => fixRangesliderTitlePosition(gd));
+            gd.on('plotly_relayout', (eventData) => enforceTickBudgetOnRangeChange(gd, eventData));
             if (!isApplyingPlotlyTickSettings) {
                 snapshotPlotlyAxisTickArrays(gd);
+                snapshotPlotlyChartDefaults(gd);
             }
             reapplyPlotlyChartSettings(gd);
             fixRangesliderTitlePosition(gd);
@@ -680,7 +1133,8 @@ function buildPlotlyChartSettingsForm(dialogID){
                         id: `${dialogID}-close-1`,
                         type: 'button',
                         class: 'btn btn-md position-absolute top-0 end-0 me-1 p-1',
-                        'aria-label': 'Close'
+                        title: 'Discard changes',
+                        'aria-label': 'Discard changes and close'
                     }).append($('<i>', { class: 'bi bi-x-circle-fill' }))
                 ),
                 $('<hr>', { class: 'w-100' })
@@ -689,8 +1143,7 @@ function buildPlotlyChartSettingsForm(dialogID){
                 $('<div>', { class: 'mb-2' }).append(
                     $('<label>', { class: 'form-label mb-1', for: `${dialogID}-title`, text: 'Title' }),
                     $('<div>', { class: 'd-flex flex-wrap align-items-center gap-2' }).append(
-                        $('<input>', { id: `${dialogID}-title`, type: 'text', class: 'form-control form-control-sm' })
-                            .on('input', function() { capitalizePlotlyTextInput($(this)); }),
+                        buildPlotlyTextField(`${dialogID}-title`),
                         $('<select>', {
                             id: `${dialogID}-title-font`,
                             class: 'form-select form-select-sm',
@@ -704,11 +1157,12 @@ function buildPlotlyChartSettingsForm(dialogID){
                         $('<input>', {
                             id: `${dialogID}-title-size`,
                             type: 'number',
-                            min: 1,
+                            min: PLOTLY_TITLE_SIZE_LIMITS.min,
+                            max: PLOTLY_TITLE_SIZE_LIMITS.max,
                             class: 'form-control form-control-sm',
                             style: 'width: 90px;',
                             placeholder: 'Title size',
-                            title: 'Title size'
+                            title: `Title size (${PLOTLY_TITLE_SIZE_LIMITS.min}-${PLOTLY_TITLE_SIZE_LIMITS.max})`
                         }),
                         $('<input>', {
                             id: `${dialogID}-title-color`,
@@ -716,36 +1170,57 @@ function buildPlotlyChartSettingsForm(dialogID){
                             class: 'form-control form-control-color',
                             title: 'Title color'
                         })
-                    )
+                    ),
+                    buildPlotlyTextWarning(`${dialogID}-title`)
                 ),
                 $('<div>', { class: 'row g-2' }).append(
                     $('<div>', { class: 'col-sm-6' }).append(
                         $('<label>', { class: 'form-label mb-1', for: `${dialogID}-x-label`, text: 'X-axis label' }),
-                        $('<input>', { id: `${dialogID}-x-label`, type: 'text', class: 'form-control form-control-sm' })
-                            .on('input', function() { capitalizePlotlyTextInput($(this)); })
+                        buildPlotlyTextField(`${dialogID}-x-label`),
+                        buildPlotlyTextWarning(`${dialogID}-x-label`)
                     ),
                     $('<div>', { class: 'col-sm-6' }).append(
                         $('<label>', { class: 'form-label mb-1', for: `${dialogID}-y-label`, text: 'Y-axis label' }),
-                        $('<input>', { id: `${dialogID}-y-label`, type: 'text', class: 'form-control form-control-sm' })
-                            .on('input', function() { capitalizePlotlyTextInput($(this)); })
+                        buildPlotlyTextField(`${dialogID}-y-label`),
+                        buildPlotlyTextWarning(`${dialogID}-y-label`)
+                    ),
+                    $('<div>', { id: `${dialogID}-y2-label-group`, class: 'col-sm-6 d-none' }).append(
+                        $('<label>', { class: 'form-label mb-1', for: `${dialogID}-y2-label`, text: 'Y-axis 2 (right) label' }),
+                        buildPlotlyTextField(`${dialogID}-y2-label`),
+                        buildPlotlyTextWarning(`${dialogID}-y2-label`)
                     ),
                     $('<div>', { class: 'col-sm-6' }).append(
                         $('<label>', { id: `${dialogID}-x-tick-label`, class: 'form-label mb-1', for: `${dialogID}-x-tick`, text: 'X-axis tick interval' }),
                         $('<div>', { class: 'd-flex align-items-center gap-2' }).append(
-                            $('<input>', { id: `${dialogID}-x-tick`, type: 'number', step: 'any', class: 'form-control form-control-sm', placeholder: 'Auto' }),
+                            $('<input>', { id: `${dialogID}-x-tick`, type: 'text', inputmode: 'decimal', autocomplete: 'off', class: 'form-control form-control-sm', placeholder: 'Auto' }),
                             $('<select>', { id: `${dialogID}-x-tick-unit`, class: 'form-select form-select-sm d-none', style: 'width: 100px;' }).append(
                                 TICK_INTERVAL_UNITS.map(u => $('<option>', { value: u.value, text: u.label }))
-                            )
-                        )
+                            ),
+                            $('<span>', { id: `${dialogID}-x-tick-unitlabel`, class: 'text-body-secondary d-none' })
+                        ),
+                        $('<div>', { id: `${dialogID}-x-tick-warning`, class: 'form-text text-warning-emphasis d-none' })
                     ),
                     $('<div>', { class: 'col-sm-6' }).append(
                         $('<label>', { id: `${dialogID}-y-tick-label`, class: 'form-label mb-1', for: `${dialogID}-y-tick`, text: 'Y-axis tick interval' }),
                         $('<div>', { class: 'd-flex align-items-center gap-2' }).append(
-                            $('<input>', { id: `${dialogID}-y-tick`, type: 'number', step: 'any', class: 'form-control form-control-sm', placeholder: 'Auto' }),
+                            $('<input>', { id: `${dialogID}-y-tick`, type: 'text', inputmode: 'decimal', autocomplete: 'off', class: 'form-control form-control-sm', placeholder: 'Auto' }),
                             $('<select>', { id: `${dialogID}-y-tick-unit`, class: 'form-select form-select-sm d-none', style: 'width: 100px;' }).append(
                                 TICK_INTERVAL_UNITS.map(u => $('<option>', { value: u.value, text: u.label }))
-                            )
-                        )
+                            ),
+                            $('<span>', { id: `${dialogID}-y-tick-unitlabel`, class: 'text-body-secondary d-none' })
+                        ),
+                        $('<div>', { id: `${dialogID}-y-tick-warning`, class: 'form-text text-warning-emphasis d-none' })
+                    ),
+                    $('<div>', { id: `${dialogID}-y2-tick-group`, class: 'col-sm-6 d-none' }).append(
+                        $('<label>', { id: `${dialogID}-y2-tick-label`, class: 'form-label mb-1', for: `${dialogID}-y2-tick`, text: 'Y-axis 2 (right) tick interval' }),
+                        $('<div>', { class: 'd-flex align-items-center gap-2' }).append(
+                            $('<input>', { id: `${dialogID}-y2-tick`, type: 'text', inputmode: 'decimal', autocomplete: 'off', class: 'form-control form-control-sm', placeholder: 'Auto' }),
+                            $('<select>', { id: `${dialogID}-y2-tick-unit`, class: 'form-select form-select-sm d-none', style: 'width: 100px;' }).append(
+                                TICK_INTERVAL_UNITS.map(u => $('<option>', { value: u.value, text: u.label }))
+                            ),
+                            $('<span>', { id: `${dialogID}-y2-tick-unitlabel`, class: 'text-body-secondary d-none' })
+                        ),
+                        $('<div>', { id: `${dialogID}-y2-tick-warning`, class: 'form-text text-warning-emphasis d-none' })
                     )
                 ),
                 $('<fieldset>', { class: 'border border-secondary rounded-3 p-2 mt-3' }).append(
@@ -753,7 +1228,14 @@ function buildPlotlyChartSettingsForm(dialogID){
                     $('<div>', { id: `${dialogID}-colors`, class: 'plotly-chart-settings-colors' })
                 )
             ),
-            $('<div>', { class: 'd-flex justify-content-end m-2' }).append(
+            $('<div>', { class: 'd-flex justify-content-between m-2' }).append(
+                $('<button>', {
+                    id: `${dialogID}-reset`,
+                    type: 'button',
+                    class: 'btn btn-sm btn-outline-secondary',
+                    text: 'Reset to defaults',
+                    title: 'Discard this chart\'s customization and put its title, axis labels, tick intervals and colors back to how the chart is drawn by default - applies and closes'
+                }),
                 $('<button>', {
                     id: `${dialogID}-close-2`,
                     type: 'button',
@@ -769,12 +1251,19 @@ function enablePlotlyChartSettings(
     buttonID,
     chartID,
     inputsFunction = buildPlotlyChartSettingsForm,
-    colorsModule = defaultTraceColorsModule
+    colorsModule = defaultTraceColorsModule,
+    axisKindResolver = null,
+    caseKeyResolver = null,
+    disallowedTickUnits = []
 ) {
     const dialogID = `plotly-chart-settings-${buttonID}`;
     // remember which colorsModule this chart uses so saved settings can
     // be restored correctly even on a redraw the dialog wasn't open for
     plotlyChartSettingsModules[chartID] = colorsModule;
+    plotlyChartAxisKindResolvers[chartID] = axisKindResolver;
+    plotlyChartSettingsCaseKeyResolvers[chartID] = caseKeyResolver;
+    plotlyChartDisallowedTickUnits[chartID] = disallowedTickUnits;
+
     const editButton = $(`#plotly-chart-edit-${buttonID}`);
     const modalHost = editButton.closest('.modal');
     const dialogHost = modalHost.length ? modalHost : $(document.body);
@@ -783,6 +1272,11 @@ function enablePlotlyChartSettings(
     if (!dialog.length) {
         dialog = inputsFunction(dialogID);
         dialog.appendTo(dialogHost);
+        disallowedTickUnits.forEach(unitValue => {
+            $(`#${dialogID}-x-tick-unit, #${dialogID}-y-tick-unit`)
+                .find(`option[value="${unitValue}"]`)
+                .remove();
+        });
     } else if (!dialog.parent().is(dialogHost)) {
 
         dialog.appendTo(dialogHost);
@@ -814,31 +1308,39 @@ function enablePlotlyChartSettings(
         $(`#${dialogID}-x-label`).val(plotlyAxisTitle(graph.layout.xaxis));
         $(`#${dialogID}-y-label`).val(plotlyAxisTitle(graph.layout.yaxis));
 
-        // the tick-interval field means different things on different
-        // axes (see the tick-interval helpers block near the top of this
-        // file) - relabel it, mark whole-number-only axes, show/hide and
-        // populate the unit dropdown for a date axis, and convert the
-        // stored dtick (always in Plotly's own unit - ms, or 'M<n>' for
-        // months/years) back to what the field displays, every time the
-        // dialog opens, since the same dialog can be reused by a chart
-        // whose axis type depends on the currently selected variable
-        // (e.g. rainy-season onset/cessation vs. length)
-        ['xaxis', 'yaxis'].forEach(axisName => {
-            const side = axisName === 'xaxis' ? 'x' : 'y';
+
+        const hasY2 = plotlyChartHasSecondYAxis(graph);
+        $(`#${dialogID}-y2-tick-group`).toggleClass('d-none', !hasY2);
+        $(`#${dialogID}-y2-label-group`).toggleClass('d-none', !hasY2);
+        $(`#${dialogID}-y2-label`).val(plotlyAxisTitle(graph.layout.yaxis2));
+        ['title', 'x-label', 'y-label', 'y2-label'].forEach(field =>
+            updatePlotlyTextWarning($(`#${dialogID}-${field}`))
+        );
+        const tickAxes = hasY2 ? ['xaxis', 'yaxis', 'yaxis2'] : ['xaxis', 'yaxis'];
+
+   
+        tickAxes.forEach(axisName => {
+            const side = plotlyAxisFieldSide(axisName);
             const input = $(`#${dialogID}-${side}-tick`);
             const unitSelect = $(`#${dialogID}-${side}-tick-unit`);
             const isDate = getPlotlyAxisType(graph, axisName) === 'date';
-            const isInteger = !isDate && getPlotlyAxisNumberKind(graph, axisName) === 'integer';
+            const isYear = isPlotlyAxisYearKind(graph, axisName);
+            const isInteger = !isDate && !isYear && getPlotlyAxisNumberKind(graph, axisName) === 'integer';
 
-            $(`#${dialogID}-${side}-tick-label`).text(
-                `${side.toUpperCase()}-axis tick interval` + (isInteger ? ' (whole numbers)' : '')
-            );
+            const axisLabel = axisName === 'yaxis2' ? 'Y-axis 2 (right)' : `${side.toUpperCase()}-axis`;
+            $(`#${dialogID}-${side}-tick-label`).text(`${axisLabel} tick interval`);
             unitSelect.toggleClass('d-none', !isDate);
+
+
+            const unitLabel = isYear ? 'year(s)' : (isInteger ? getPlotlyAxisUnitLabel(graph, axisName) : null);
+            $(`#${dialogID}-${side}-tick-unitlabel`)
+                .text(unitLabel || '')
+                .toggleClass('d-none', !unitLabel);
 
             if (isDate) {
                 const rangeSpan = getPlotlyAxisRangeSpan(graph, axisName, true);
                 const { unit, magnitude } = decomposeDateDtick(graph.layout[axisName]?.dtick, rangeSpan);
-                unitSelect.val(unit);
+                unitSelect.val(nearestAllowedTickUnit(chartID, unit));
                 input.val(magnitude ?? '');
             } else {
                 const dtick = graph.layout[axisName]?.dtick;
@@ -852,41 +1354,80 @@ function enablePlotlyChartSettings(
         return true;
     }
 
-    // keeps a tick-interval input's step/min in sync with what it
-    // currently means - the axis's type/kind, and for a date axis, the
-    // unit the user has selected (Days/Weeks/Months/Years). Called on
-    // dialog open and again whenever the unit dropdown changes.
+
+    function computeTickWholeOnly(axisName) {
+        const graph = getGraph();
+        if (!graph) {
+            return false;
+        }
+        const side = plotlyAxisFieldSide(axisName);
+        const isDate = getPlotlyAxisType(graph, axisName) === 'date';
+        const isInteger = !isDate && getPlotlyAxisNumberKind(graph, axisName) === 'integer';
+        const unitValue = isDate ? $(`#${dialogID}-${side}-tick-unit`).val() : null;
+        return isInteger || (isDate && getTickIntervalUnit(unitValue).wholeOnly);
+    }
+
     function refreshTickInputConstraints(axisName) {
         const graph = getGraph();
         if (!graph) {
             return;
         }
-        const side = axisName === 'xaxis' ? 'x' : 'y';
+        const side = plotlyAxisFieldSide(axisName);
         const input = $(`#${dialogID}-${side}-tick`);
         const isDate = getPlotlyAxisType(graph, axisName) === 'date';
-        const isInteger = !isDate && getPlotlyAxisNumberKind(graph, axisName) === 'integer';
+        const isYear = isPlotlyAxisYearKind(graph, axisName);
         const unitValue = isDate ? $(`#${dialogID}-${side}-tick-unit`).val() : null;
-        const wholeOnly = isInteger || (isDate && getTickIntervalUnit(unitValue).wholeOnly);
+        const wholeOnly = computeTickWholeOnly(axisName);
 
-        input.attr('step', wholeOnly ? '1' : 'any');
+        
+        input.attr('type', isYear ? 'number' : 'text');
         const minInterval = getPlotlyAxisMinDisplayInterval(graph, axisName, isDate, unitValue);
-        if (minInterval !== null) {
-            input.attr('min', minInterval);
+        if (isYear) {
+            const minYears = Math.max(1, minInterval ?? 1);
+            input.attr('min', minYears).attr('step', 1).removeAttr('inputmode');
+            if (minYears > 1) {
+                input.attr('title', `Minimum: ${minYears}`);
+            } else {
+                input.removeAttr('title');
+            }
         } else {
-            input.removeAttr('min');
+            input.attr('inputmode', wholeOnly ? 'numeric' : 'decimal').removeAttr('step');
+            if (minInterval !== null) {
+                input.attr('min', minInterval).attr('title', `Minimum: ${minInterval}`);
+            } else {
+                input.removeAttr('min').removeAttr('title');
+            }
         }
+        sanitizeTickIntervalInput(input, wholeOnly);
+        updateTickIntervalWarning(axisName);
     }
 
-    // tick interval: axis-aware and bounded, not just "positive number".
-    // On a date axis the field's meaning depends on the paired unit
-    // dropdown (days/weeks convert to Plotly's millisecond dtick;
-    // months/years convert to Plotly's own 'M<n>' calendar-based dtick,
-    // and only accept whole numbers - there's no such thing as half a
-    // calendar month); on a whole-number axis a fractional entry is
-    // rejected outright (it wouldn't land on a real value); on any axis,
-    // the result is clamped so it can never ask Plotly to lay out more
-    // ticks than the axis has pixels for - see the tick-interval helpers
-    // block near the top of this file.
+    function updateTickIntervalWarning(axisName) {
+        const graph = getGraph();
+        const side = plotlyAxisFieldSide(axisName);
+        const warning = $(`#${dialogID}-${side}-tick-warning`);
+        if (!graph) {
+            warning.addClass('d-none');
+            return;
+        }
+        const value = $(`#${dialogID}-${side}-tick`).val();
+        const unitValue = $(`#${dialogID}-${side}-tick-unit`).val();
+        if (!tickIntervalExceedsBudget(graph, axisName, value, unitValue)) {
+            warning.addClass('d-none');
+            return;
+        }
+        const isDate = getPlotlyAxisType(graph, axisName) === 'date';
+        const minInterval = getPlotlyAxisMinDisplayInterval(graph, axisName, isDate, unitValue);
+        const rangeDescriptor = isDate ? 'date range' : 'range';
+        const unitSuffix = isDate ? ` ${getTickIntervalUnit(unitValue).label.toLowerCase()}` : '';
+        const shortenHint = axisName === 'xaxis' ? ', or shorten the range' : '';
+        warning.text(
+            minInterval !== null
+                ? `Too many ticks for the current ${rangeDescriptor} - try at least ${minInterval}${unitSuffix}${shortenHint}.`
+                : `Too many ticks for the current ${rangeDescriptor} - try a larger interval${shortenHint}.`
+        ).removeClass('d-none');
+    }
+
     function parseTick(value, unitValue, axisName) {
         const trimmed = value.trim();
         if (!trimmed) {
@@ -921,14 +1462,13 @@ function enablePlotlyChartSettings(
     }
 
 
-     // for the title font size picker
+   // helper to parse the title font size input, clamp it to the allowed range, and return null for empty/invalid input
     function parseFontSize(value) {
         const trimmed = value.trim();
         if (!trimmed) {
             return null;
         }
-        const numeric = Number(trimmed);
-        return Number.isFinite(numeric) && numeric > 0 ? Math.round(numeric) : null;
+        return clampPlotlySize(Number(trimmed), PLOTLY_TITLE_SIZE_LIMITS);
     }
 
     function applySettings() {
@@ -936,38 +1476,36 @@ function enablePlotlyChartSettings(
         if (!graph || !graph.layout || !graph.data) {
             return;
         }
+        const caseKey = getCurrentPlotlyChartCaseKey(chartID);
         // added .trim() to remove any leading/trailing whitespace from the title and axis labels
         const layoutUpdate = {
-            'title.text': $(`#${dialogID}-title`).val().trim(),
+            'title.text': limitPlotlyTextValue($(`#${dialogID}-title`).val().trim()),
             'title.font.color': $(`#${dialogID}-title-color`).val(),
             'title.font.family': $(`#${dialogID}-title-font`).val() || null,
             'title.font.size': parseFontSize($(`#${dialogID}-title-size`).val()),
         // fix for the title is being cut off
             'title.automargin': true,
             'title.pad': { t: 5, b: 5 },
-            'xaxis.title.text': $(`#${dialogID}-x-label`).val().trim(),
-            'yaxis.title.text': $(`#${dialogID}-y-label`).val().trim(),
+            'xaxis.title.text': limitPlotlyTextValue($(`#${dialogID}-x-label`).val().trim()),
+            'yaxis.title.text': limitPlotlyTextValue($(`#${dialogID}-y-label`).val().trim()),
             'xaxis.dtick': parseTick($(`#${dialogID}-x-tick`).val(), $(`#${dialogID}-x-tick-unit`).val(), 'xaxis'),
             'yaxis.dtick': parseTick($(`#${dialogID}-y-tick`).val(), $(`#${dialogID}-y-tick-unit`).val(), 'yaxis')
         };
 
-        // a manual dtick and the axis's original tick config (explicit
-        // tickvals/ticktext - several charts pre-set these, mostly on Y
-        // but also X for e.g. rainy-season/probability CDF views - or a
-        // baked-in dtick like Climato/Telecon's own `dtick: 'M1'`/`5`)
-        // can't coexist: Plotly favors an "array" tick mode over dtick
-        // whenever tickvals is present, so leaving the old array in
-        // place would silently ignore the dtick the user just asked
-        // for. Make the two mutually exclusive: setting a valid manual
-        // dtick clears the array; clearing the field (or typing
-        // something invalid, which parseTick already turned into null)
-        // restores the axis's own original tick config exactly as the
-        // chart was actually drawn with, dtick included - not just a
-        // blanket null, which would otherwise wipe out a chart's own
-        // non-numeric default (e.g. 'M1') the first time this dialog is
-        // touched at all, even without entering anything.
-        const originalTicks = plotlyChartOriginalTickArrays[chartID] || {};
-        ['xaxis', 'yaxis'].forEach(axisName => {
+    
+        const hasY2 = plotlyChartHasSecondYAxis(graph);
+        if (hasY2) {
+            layoutUpdate['yaxis2.title.text'] = limitPlotlyTextValue(
+                $(`#${dialogID}-y2-label`).val().trim()
+            );
+            layoutUpdate['yaxis2.dtick'] = parseTick(
+                $(`#${dialogID}-y2-tick`).val(), $(`#${dialogID}-y2-tick-unit`).val(), 'yaxis2'
+            );
+        }
+
+  
+        const originalTicks = plotlyChartOriginalTickArrays[chartID]?.[caseKey] || {};
+        (hasY2 ? ['xaxis', 'yaxis', 'yaxis2'] : ['xaxis', 'yaxis']).forEach(axisName => {
             const original = originalTicks[axisName] || {};
             const manualDtick = layoutUpdate[`${axisName}.dtick`];
             if (manualDtick !== null) {
@@ -985,16 +1523,14 @@ function enablePlotlyChartSettings(
         // title, so if the user shrinks the title text or removes it entirely
 
         const mergedLayout = deepMerge(graph.layout, dotPathsToNestedObject(layoutUpdate));
-        // tell the newPlot wrapper this redraw is a settings apply, not
-        // a fresh data draw, so it doesn't overwrite the "original tick
-        // arrays" cache with this dtick-only, tickvals-cleared layout
+    
         isApplyingPlotlyTickSettings = true;
         Plotly.newPlot(graph, graph.data, mergedLayout, graph._context)
             .finally(() => { isApplyingPlotlyTickSettings = false; });
         const colors = colorsModule.apply(dialogID, graph);
 
-        // save the updated settings
-        savePlotlyChartSettings(chartID, { layout: layoutUpdate, colors });
+        
+        savePlotlyChartSettings(chartID, caseKey, { layout: layoutUpdate, colors });
     }
 
     editButton
@@ -1005,17 +1541,63 @@ function enablePlotlyChartSettings(
             }
         });
 
-    // switching Days/Weeks/Months/Years should immediately update the
-    // paired input's step (whole numbers only for months/years) and
-    // minimum hint for the newly selected unit, not just at dialog-open
+        
     $(`#${dialogID}-x-tick-unit`)
         .off('change.plotlyChartSettings')
         .on('change.plotlyChartSettings', () => refreshTickInputConstraints('xaxis'));
     $(`#${dialogID}-y-tick-unit`)
         .off('change.plotlyChartSettings')
         .on('change.plotlyChartSettings', () => refreshTickInputConstraints('yaxis'));
+    $(`#${dialogID}-y2-tick-unit`)
+        .off('change.plotlyChartSettings')
+        .on('change.plotlyChartSettings', () => refreshTickInputConstraints('yaxis2'));
 
-    $(`#${dialogID}-close-1, #${dialogID}-close-2`)
+
+    $(`#${dialogID}-x-tick`)
+        .off('keydown.plotlyChartSettings')
+        .on('keydown.plotlyChartSettings', e => handleTickIntervalKeydown(e, computeTickWholeOnly('xaxis')))
+        .off('input.plotlyChartSettings')
+        .on('input.plotlyChartSettings', function() {
+            sanitizeTickIntervalInput($(this), computeTickWholeOnly('xaxis'));
+            updateTickIntervalWarning('xaxis');
+        });
+    $(`#${dialogID}-y-tick`)
+        .off('keydown.plotlyChartSettings')
+        .on('keydown.plotlyChartSettings', e => handleTickIntervalKeydown(e, computeTickWholeOnly('yaxis')))
+        .off('input.plotlyChartSettings')
+        .on('input.plotlyChartSettings', function() {
+            sanitizeTickIntervalInput($(this), computeTickWholeOnly('yaxis'));
+            updateTickIntervalWarning('yaxis');
+        });
+    $(`#${dialogID}-y2-tick`)
+        .off('keydown.plotlyChartSettings')
+        .on('keydown.plotlyChartSettings', e => handleTickIntervalKeydown(e, computeTickWholeOnly('yaxis2')))
+        .off('input.plotlyChartSettings')
+        .on('input.plotlyChartSettings', function() {
+            sanitizeTickIntervalInput($(this), computeTickWholeOnly('yaxis2'));
+            updateTickIntervalWarning('yaxis2');
+        });
+
+
+    $(`#${dialogID}-close-1`)
+        .off('click.plotlyChartSettings')
+        .on('click.plotlyChartSettings', function() {
+            dialog.fadeOut(200);
+        });
+
+
+    $(`#${dialogID}-reset`)
+        .off('click.plotlyChartSettings')
+        .on('click.plotlyChartSettings', function() {
+            const graph = getGraph();
+            if (graph) {
+                resetPlotlyChartToDefaults(graph);
+            }
+            dialog.fadeOut(200);
+        });
+
+    // "Close and apply" is the only thing that commits
+    $(`#${dialogID}-close-2`)
         .off('click.plotlyChartSettings')
         .on('click.plotlyChartSettings', function() {
             applySettings();

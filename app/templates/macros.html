@@ -17,7 +17,15 @@
 {% macro create_card_charts(divchartID, pageText) %}
 <div class="card card-charts" id="container-{{ divchartID }}">
     <div class="position-relative">
-        <button id="btn-{{ divchartID }}" type="button" class="btn-expand-chart btn btn-md text-right position-absolute top-0 end-0 p-0 me-1" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="{{ pageText.expand_chart }}"><i class="bi bi-arrows-angle-expand"></i></button>
+        <div class="position-absolute top-0 end-0 d-flex flex-column align-items-center me-1">
+            <button id="btn-{{ divchartID }}" type="button" class="btn-preview-chart btn btn-md text-right p-0" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="{{ pageText.expand_chart }}">
+                <span class="position-relative d-inline-block" style="width: 1.25rem; height: 1.25rem;">
+                    <i class="bi bi-circle position-absolute top-50 start-50 translate-middle fs-5"></i>
+                    <i class="bi bi-arrows-angle-expand position-absolute top-50 start-50 translate-middle" style="font-size: 0.65rem;"></i>
+                </span>
+            </button>
+            <button id="info-preview-{{ divchartID }}" type="button" class="btn-preview-chart btn btn-md text-right p-0" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="{{ pageText.info_chart }}"><i class="bi bi-info-circle" style="font-size: 1.25rem;"></i></button>
+        </div>
     </div>
     <div class="card-block d-flex justify-content-center">
         <div id="{{ divchartID }}" class="div-card-charts"></div>
@@ -71,6 +79,7 @@
     <div class="col-md-6 d-flex justify-content-end" id="modebar-{{ divchartID }}">
         <div class="modebar-controls" role="toolbar">
             <div class="modebar-group">
+                <button id="plotly-chart-info-{{ divchartID }}" type="button" class="modebar-btn btn btn-md" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="{{ pageText.info_chart }}"><i class="bi bi-info-circle"></i></button>
                 <button id="plotly-chart-edit-{{ divchartID }}" type="button" class="modebar-btn btn btn-md" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="{{ pageText.plotly_chrat_edit }}"><i class="bi bi-reception-2"></i></button>
                 <button id="plotly-replot-{{ divchartID }}" class="modebar-btn btn btn-md" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="{{ pageText.plotly_replot }}"><i class="bi bi-arrow-counterclockwise"></i></button>
                 <button id="plotly-download-{{ divchartID }}" class="modebar-btn btn btn-md" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="{{ pageText.plotly_download }}"><i class="bi bi-arrow-down-circle-fill"></i></button>

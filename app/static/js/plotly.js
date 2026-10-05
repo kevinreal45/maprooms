@@ -17,6 +17,7 @@ var expand_layout = {
     plot_bgcolor: 'rgba(255, 255, 255, 0)',
     xaxis: {
         mirror: true,
+        automargin: true,
     },
     yaxis: {
         mirror: true,
@@ -29,6 +30,7 @@ var preview_layout = {
     plot_bgcolor: 'rgba(0, 0, 0, 0)',
     xaxis: {
         mirror: true,
+        automargin: true,
         color: plotly_themecolors[localStorage.getItem('theme')].color,
         gridcolor: plotly_themecolors[localStorage.getItem('theme')].color,
     },
@@ -62,13 +64,7 @@ var plotly_rangeslider = {
     bgcolor: 'transparent',
 };
 
-// Plotly always stacks a rangeslider-enabled x-axis as
-// ticks -> rangeslider -> title, with no layout option to reorder it, so
-// a custom x-axis title ends up below the slider instead of sitting right
-// under the tick labels like it would with no slider. This swaps the two
-// elements' vertical positions directly in the rendered SVG once Plotly
-// has laid them out, moving the title above the slider and the slider
-// down into the title's old spot - same total space, just reordered.
+
 function fixRangesliderTitlePosition(gd) {
     const xaxis = gd && gd.layout && gd.layout.xaxis;
     if (!xaxis || !xaxis.rangeslider || !xaxis.rangeslider.visible) {
@@ -101,17 +97,14 @@ function fixRangesliderTitlePosition(gd) {
 
     const titleBaseline = parseFloat(titleEl.getAttribute('y'));
 
-    // already above the slider - either it shipped that way or a previous
-    // call already fixed it. Skip so repeated calls (this runs on every
-    // afterplot/relayout: resize, theme toggle, rangeslider drag...) don't
-    // flip the two elements back and forth.
+
     if (!Number.isFinite(titleBaseline) || titleBaseline <= sliderTop) {
         return;
     }
 
-    const fontSize = parseFloat(titleEl.style.fontSize)
-        || (xaxis.title.font && xaxis.title.font.size)
-        || 14;
+    const fontSize = parseFloat(titleEl.style.fontSize) ||
+        (xaxis.title.font && xaxis.title.font.size) ||
+        14;
     const ascent = fontSize * 0.8;
     const descent = fontSize * 0.2;
     // small fixed gap between the title and the slider below it, instead
@@ -169,6 +162,23 @@ function hoverlabelColors(theme) {
     };
 }
 
+
+function isThemeDefaultFontColor(color) {
+    if (typeof color !== 'string') {
+        return false;
+    }
+    const value = color.toLowerCase();
+    return Object.keys(plotly_themecolors)
+        .some(key => plotly_themecolors[key].fontcolor.toLowerCase() === value);
+}
+
+// the color a chart title should actually be drawn in under `theme`
+function themeAwareTitleColor(color, theme) {
+    return isThemeDefaultFontColor(color) ?
+        (plotly_themecolors[theme] || plotly_themecolors.light).fontcolor :
+        color;
+}
+
 function setPlotlyThemeColors(container) {
     const gd = document.getElementById(container);
     $('#btn-theme-toggle').on('click', () => {
@@ -205,6 +215,19 @@ function setPlotlyThemeColors(container) {
             layout.yaxis2.tickfont.color = yax_tck_col2;
         }
 
+
+        // const title_col = gd.layout.title?.font?.color;
+        const title_col = gd.layout.title && gd.layout.title.font ?
+            gd.layout.title.font.color :
+            undefined;
+
+        const title_col_themed = themeAwareTitleColor(title_col, theme);
+        if (title_col_themed !== title_col) {
+            layout.title = deepMerge(layout.title, {
+                font: { color: title_col_themed }
+            });
+        }
+
         const theme1 = (theme === 'dark') ? 'light' : 'dark';
         if ('spikecolor' in gd.layout.xaxis) {
             layout.yaxis.spikecolor = plotly_themecolors[theme1].fontcolor;
@@ -220,10 +243,7 @@ function setPlotlyThemeColors(container) {
     });
 }
 
-// the downloaded image always gets a white background (see print_layout
-// below), so a whitish title color would blend into it; treat anything
-// close enough to white as unreadable there and fall back to black,
-// while leaving any other user-chosen color untouched
+
 function isWhitishColor(color) {
     const hex = plotlyColorInputValue(color, null);
     if (!hex) {
@@ -309,9 +329,13 @@ function downloadPlotlyImageJPG(container) {
     if (plot_layout.title && plot_layout.title.text) {
         print_layout.margin = deepMerge(print_layout.margin || {}, { t: 60 });
     }
-    // avoid a whitish title vanishing into the download's white background;
-    // any other title color the user picked is kept as-is
-    if (isWhitishColor(plot_layout.title?.font?.color)) {
+
+    // if (isWhitishColor(plot_layout.title?.font?.color)) {
+    if (isWhitishColor(
+            plot_layout.title && plot_layout.title.font ?
+            plot_layout.title.font.color :
+            undefined
+        )) {
         print_layout.title = { font: { color: 'black' } };
     }
     const legend_color = {
@@ -329,9 +353,7 @@ function downloadPlotlyImageJPG(container) {
             // height: 450
         })
         .then(function(dataUrl) {
-            // const img = document.createElement('img');
-            // img.src = dataUrl;
-            // document.body.appendChild(img);
+
             gd.layout = plot_layout_copy;
         })
         .catch(function(error) {
@@ -389,6 +411,16 @@ function showRangeselector(container, action) {
             btn.hide();
         }
     });
+}
+
+
+function getPlotlyChartSettingsButtonId(container) {
+    return container.replace(/^container-chart-/, '');
+}
+
+
+function toggleChartSettingsButton(container, visible) {
+    $(`#plotly-chart-edit-${getPlotlyChartSettingsButtonId(container)}`).toggle(visible);
 }
 
 function computeRangeselectorDate(range_key, last_date) {
@@ -553,6 +585,34 @@ function xaxisPlotlyLabelYears(time) {
     return dtick;
 }
 
+
+function getDailySeasonRange(date, seas_daily) {
+    const yrm = date.getFullYear();
+    let days = seas_daily.split('_').map(d => d.split('-'));
+    const eqYear = days[0][0] === days[1][0];
+    days[0][0] = String(yrm);
+    days[1][0] = String(yrm);
+
+    if (!eqYear) {
+        const t1 = new Date(days[0].join('-'));
+        const t2 = new Date(days[1].join('-'));
+        const df1 = getDaysDifference(t1, date);
+        const df2 = getDaysDifference(t2, date);
+        if (df1 > df2) {
+            days[0][0] = String(yrm - 1);
+        } else {
+            days[1][0] = String(yrm + 1);
+        }
+    }
+
+    return {
+        start: new Date(days[0].join('-')),
+        end: new Date(days[1].join('-')),
+        startParts: days[0],
+        endParts: days[1]
+    };
+}
+
 function formatPlotlyHoverDate(
     time, time_res,
     seas_len = null,
@@ -590,36 +650,18 @@ function formatPlotlyHoverDate(
 
         return `${mo1} ${yr1} - ${mo2} ${yr2}`;
     } else if (time_res === 'daily') {
-        const yrm = date.getFullYear();
-        let days = seas_daily.split('_')
-            .map(d => d.split('-'));
-        const eqYear = days[0][0] === days[1][0];
-        days[0][0] = String(yrm);
-        days[1][0] = String(yrm);
-
-        if (!eqYear) {
-            const t1 = new Date(days[0].join('-'));
-            const t2 = new Date(days[1].join('-'));
-            const df1 = getDaysDifference(t1, date);
-            const df2 = getDaysDifference(t2, date);
-            if (df1 > df2) {
-                days[0][0] = String(yrm - 1);
-            } else {
-                days[1][0] = String(yrm + 1);
-            }
-        }
-
-        const dt1 = new Date(days[0].join('-'));
+        const { start: dt1, end: dt2, startParts, endParts } =
+        getDailySeasonRange(date, seas_daily);
         const m1 = dt1.toLocaleString(
             localeS, { month: 'short' }
         );
-        const dt2 = new Date(days[1].join('-'));
+
         const m2 = dt2.toLocaleString(
             localeS, { month: 'short' }
         );
 
-        const s = `${days[0][2]} ${m1} ${days[0][0]}`;
-        const e = `${days[1][2]} ${m2} ${days[1][0]}`;
+        const s = `${startParts[2]} ${m1} ${startParts[0]}`;
+        const e = `${endParts[2]} ${m2} ${endParts[0]}`;
         return `${s} - ${e}`;
     } else if (time_res === 'weekly') {
         const weekr = getWeekRange(date);
@@ -709,18 +751,19 @@ function createTicksMinor(tickvals) {
     return xTicks;
 }
 
+
 function getChartWidth(container) {
     const divCont = $(`#${container}`);
-    const parentWidth = divCont.parent().width();
     const containerWidth = divCont.width();
-    return Math.floor(parentWidth || containerWidth || window.innerWidth * 0.8);
+    const parentWidth = divCont.parent().width();
+    return Math.floor(containerWidth || parentWidth || window.innerWidth * 0.8);
 }
 
 function getChartHeight(container) {
     const divCont = $(`#${container}`);
-    const parentHeight = divCont.parent().height();
     const containerHeight = divCont.height();
-    return Math.floor(parentHeight || containerHeight || window.innerHeight * 0.6);
+    const parentHeight = divCont.parent().height();
+    return Math.floor(containerHeight || parentHeight || window.innerHeight * 0.6);
 }
 
 function resizePlotlyChart(container) {

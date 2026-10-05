@@ -24,5 +24,8 @@ def main():
     print(f'{sep}\n Updating NOAA CPC Monthly North Atlantic Oscillation (NAO)')
     update_nao_cpc_cdas_monthly()
 
+    print(f'{sep}\n Updating NOAA CPC Monthly Atlantic 3 Index (ATL3)')
+    update_atl3_cpc_monthly()
+
 if __name__ == '__main__':
     main()

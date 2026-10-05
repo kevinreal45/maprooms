@@ -317,7 +317,10 @@ function preview_analysis_display_rawdata(json, container) {
     divCont.empty();
 
     const xaxisHoverText = json.time.map((t) => {
-        return formatPlotlyHoverDate(t, json.info.time_res);
+        return formatPlotlyHoverDate(
+            t, json.info.time_res,
+            json.info.seas_len
+        );
     });
 
     const var_precip = json.info.var.type === 'precip';
@@ -1759,13 +1762,17 @@ function preview_analysis_query_cumul(tempRes) {
     query.map_variable = $(`#${tempRes}-map-variable`).val();
     query.variable = DATA_SET.variables[query.map_variable][0];
 
-    const date = $(`#${tempRes}-map-date-calendar`).val();
-    query.Date = formatDekadDate(date);
-    const start_dek = getStartDekadCumul(tempRes, query.map_variable);
-    if (!checkDatesDekadCumul(start_dek, date)) {
+    const start_date = getStartDekadCumul(tempRes, query.map_variable);
+    const end_date = $(`#${tempRes}-map-date-calendar`).val();
+    if (!checkDatesCumul(start_date, end_date)) {
         return false;
     }
-    query.startDekad = formatDekadDate(start_dek);
+    query.startDate = formatDekadDate(start_date);
+    query.endDate = formatDekadDate(end_date);
+
+    query.startYear = BASE_PERIOD.start_year;
+    query.endYear = BASE_PERIOD.end_year;
+    query.minYear = BASE_PERIOD.min_year;
 
     return query;
 }
@@ -1793,22 +1800,6 @@ function preview_analysis_display_cumul(json, container) {
     divCont.empty();
     const theme = $('html').attr('data-bs-theme');
 
-    // const percentileLegend = {
-    //     x: [null],
-    //     y: [null],
-    //     type: "scatter",
-    //     mode: "markers",
-
-    //     marker: {
-    //         color: "gray",
-    //         size: 12,
-    //         symbol: "square"
-    //     },
-
-    //     name: "5th–95th Percentile",
-    //     hoverinfo: "skip"
-    // };
-
     const shapes = [];
     for (let j = 0; j < json.time.length - 1; j++) {
         shapes.push({
@@ -1833,9 +1824,7 @@ function preview_analysis_display_cumul(json, container) {
         });
     }
 
-    const data = [
-        // percentileLegend,
-        {
+    const data = [{
             x: json.time,
             y: json.values[0],
             name: 'Cumulative Rainfall',

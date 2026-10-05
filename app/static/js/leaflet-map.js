@@ -480,7 +480,8 @@ function displayRasterImage(json, options, map = MAP_BE) {
     // map opacity
     setRasterImageOpacity(map);
     // map colorbar settings
-    colorbarSettings(json);
+    // colorbarSettings(json);
+    colorbarSettings(json.ckeys.labels, json.ckeys.title);
     // display region
     displayMapRegions(map);
 }
@@ -1225,8 +1226,13 @@ function checkQueryPointOutside(query, time_res) {
     const lon = Number(point.lon);
     const lat = Number(point.lat);
     let p;
-    if ('map_variable' in query) {
-        p = query.map_variable;
+    if (query.map_variable || query.chart_variable) {
+        if (query.map_variable) {
+            p = query.map_variable;
+        }
+        if (query.chart_variable) {
+            p = query.chart_variable;
+        }
     } else {
         p = query.variable;
     }
@@ -1377,7 +1383,7 @@ function saveSpatialAverageSelect2() {
 
 let currentPlottyInstance = null;
 
-function colorbarSettings(json) {
+function colorbarSettings(ckeys_labels, ckeys_title) {
     $('#map-colorbar-colors').on('change', function() {
         if ($(this).val() === 'user') {
             $('#colorbar-color-user').show();
@@ -1420,16 +1426,18 @@ function colorbarSettings(json) {
         });
     });
 
+    ////
     $('#map-colorbar-breaks').on('change', function() {
         if ($(this).val() === 'user') {
             $('#colorbar-breaks-user').show();
-            $('#colorbar-breaks-user-text').html(json.ckeys.labels.join(', '));
+            $('#colorbar-breaks-user-text').html(ckeys_labels.join(', '));
         } else {
             $('#colorbar-breaks-user').hide();
         }
     });
     $('#map-colorbar-breaks').trigger('change');
 
+    ////
     $('#colorbar-color-extension-check').on('change', function() {
         if ($(this).prop('checked')) {
             $('#colorbar-color-extension-div').show();
@@ -1449,32 +1457,25 @@ function colorbarSettings(json) {
     });
     $('#colorbar-color-preset-select').trigger('change');
 
-    $('#colorbar-title-user').val(json.ckeys.title);
+    ////
+    $('#colorbar-title-user').val(ckeys_title);
 
     $('#colorbar-title-user').on('blur', function() {
         $('.leaflet-colorbar .ckeyh-title td').html($(this).val().trim());
     });
 }
 
-function colorbarSetDefault(colorbar, colors = null, breaks = null) {
+function colorbarSetDefault(colors = null, breaks = null) {
     if (colors === null) {
-        if (colorbar.color_type !== 'user') {
-            colorbar.color_type = 'preset';
-            colorbar.color_cbar = 'tim_colors';
-            $('#map-colorbar-colors').val('preset');
-            $('#colorbar-color-preset-select').val('tim_colors');
-            $('#colorbar-color-user-text').val('');
-        }
+        $('#map-colorbar-colors').val('preset');
+        $('#colorbar-color-preset-select').val('tim_colors');
+        $('#colorbar-color-user-text').val('');
     } else {
         if (Array.isArray(colors)) {
-            colorbar.color_type = 'user';
-            colorbar.color_cbar = colors;
             $('#map-colorbar-colors').val('user');
             $('#colorbar-color-preset-select').val('tim_colors');
             $('#colorbar-color-user-text').val(colors.join(', '));
         } else {
-            colorbar.color_type = 'preset';
-            colorbar.color_cbar = colors;
             $('#map-colorbar-colors').val('preset');
             $('#colorbar-color-preset-select').val(colors);
             $('#colorbar-color-user-text').val('');
@@ -1482,18 +1483,12 @@ function colorbarSetDefault(colorbar, colors = null, breaks = null) {
     }
 
     if (breaks === null) {
-        colorbar.break_type = 'default';
-        colorbar.break_cbar = null;
         $('#map-colorbar-breaks').val('default');
         $('#colorbar-breaks-user-text').val('');
     } else {
-        colorbar.break_type = 'user';
-        colorbar.break_cbar = breaks;
         $('#map-colorbar-breaks').val('user');
         $('#colorbar-breaks-user-text').val(breaks.join(', '));
     }
-
-    return colorbar;
 }
 
 function colorbarGetData() {

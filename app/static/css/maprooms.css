@@ -455,7 +455,7 @@ body {
 
 /*******/
 
-.btn-expand-chart {
+.btn-preview-chart {
     width: 1.8rem;
     height: 1.8rem;
     border-radius: 50%;
@@ -464,12 +464,12 @@ body {
     justify-content: center;
 }
 
-[data-bs-theme="dark"] .btn-expand-chart:hover {
+[data-bs-theme="dark"] .btn-preview-chart:hover {
     color: var(--bs-dark-text-emphasis) !important;
     background-color: var(--maproom-dark-hover) !important;
 }
 
-[data-bs-theme="light"] .btn-expand-chart:hover {
+[data-bs-theme="light"] .btn-preview-chart:hover {
     color: var(--bs-light-text-emphasis) !important;
     background-color: var(--maproom-light-hover) !important;
 }

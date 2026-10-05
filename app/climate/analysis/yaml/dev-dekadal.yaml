@@ -123,6 +123,20 @@ opt_ts_raw:
     start_mon:
         en: Start month
         fr: Début mois
+opt_ts_raw_plot:
+    label:
+        en: Plot type
+        fr: Type de graphique
+    select:
+        bar:
+            en: Bar
+            fr: Barre
+        line:
+            en: Line
+            fr: Ligne
+        lpoint:
+            en: Line + Points
+            fr: Ligne + Points
 opt_ts_anom:
     label_date:
         start:

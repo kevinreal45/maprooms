@@ -7,6 +7,21 @@ $(document).ready(function() {
 
     ////////////
     // Modal Expand Charts
+    $('.monthly-raw-select2').select2({
+        minimumResultsForSearch: -1,
+        dropdownParent: $('#monthly-raw-control')
+    });
+    $('#btn-div-chart-raw').on('click', () => {
+        setAnalysisExpandModalRaw('monthly', 'div-chart-raw');
+    });
+
+    $('.monthly-anom-select2').select2({
+        minimumResultsForSearch: -1,
+        dropdownParent: $('#monthly-anom-control')
+    });
+    $('#btn-div-chart-anom').on('click', () => {
+        setAnalysisExpandModalAnom('monthly', 'div-chart-anom');
+    });
 
     ////////////
     // initialize map

@@ -1,11 +1,171 @@
 description:
-    en: test
-    fr: test
-# all about dekadal
+    en: |
+        <h4>Dekadal Climate Monitoring</h4>
+        <p>This Analysis tool allows users to view different presentations of the the most recent dekad. The default map on this page displays dekadal (approximately 10-day) rainfall amounts over the country.</p>
+        <h5>Dekadal Rainfall Amount</h5>
+        The default map shows rainfall totals for the most recently available dekad, but totals for previous dekads can be displayed as well.</p>
+        <h5>Dekadal Rainfall Anomaly</h5>
+        <p>The rainfall anomalies map displays the difference between the most recent dekadal rainfall and the long-term average (1991-2020). Positive (negative) values indicate dekadal rainfall that are above (below) the long-term mean or climatology. </p>
+        <h5>Dekadal Rainfall Anomaly in Percent</h5>
+        <p>The rainfall anomalies in percent map displays the difference between the most recent dekadal rainfall and the long-term average (1991-2020) expressed as a percentage of the climatology. Positive (negative) values indicate dekadal rainfall that are above (below) the long-term mean or climatology.</p>
+        <h5>Cumulative Rainfall</h5>
+        <p>The cumulative rainfall map displays the accumulated rainfall from a user selected day.</p>
+        <h5>Cumulative Rainfall Anomaly</h5>
+        <p>The cumulative anomaly map displays the difference between the accumulated rainfall from a user selected day and the long-term average (1991-2020) for the same period. Positive (negative) values indicate accumulated rainfall that are above (below) the long-term mean or climatology.</p>
+        <h5>Cumulative Rainfall Anomaly in Percent</h5>
+        <p>The cumulative anomaly map displays the difference between the accumulated rainfall from a user selected day and the long-term average (1981-2010) for the same period expressed as a percentage of the climatology. Positive (negative) values indicate accumulated rainfall that are above (below) the long-term mean or climatology.</p>
+        <h5>Standard Precipitation Index (SPI)</h5>
+        <p>The SPI map displays the standard rainfall index of the most recent dekadal rainfall (using 1981 to the latest complete year as base period). The SPI (McKee 1993) is the number of standard deviations that observed cumulative rainfall deviates from the climatological average. To compute the index, a long-term time series of rainfall accumulations over dekads are used to estimate an appropriate probability density function. The analyses shown here are based on the Pearson Type III distribution (i.e., 3-parameter gamma) as suggested by Guttman (1999). The associated cumulative probability distribution is then estimated and subsequently transformed to a normal distribution. The result is the SPI, which can be interpreted as a probability using the standard normal distrubtion (i.e., users can expect the SPI be within one standard deviation about 68% of the time, two standard deviations about 95% of the time, etc.)</p> 
+    fr: |
+        <h4>Suivi Climatique Décadaire</h4>
+        <p>Cet outil d'analyse permet aux utilisateurs de visualiser différentes représentations de la dernière décade. La carte par défaut de cette page affiche les cumuls de précipitations décadaires (environ 10 jours) sur l'ensemble du pays.</p>
+        <h5>Cumul de Précipitations Décadaires</h5>
+        La carte par défaut affiche les cumuls de précipitations de la dernière décade disponible, mais les cumuls des décades précédentes peuvent également être affichés.</p>
+        <h5>Anomalie de Précipitations Décadaires</h5>
+        <p>La carte des anomalies de précipitations affiche la différence entre les précipitations décadaires les plus récentes et la moyenne à long terme (1991-2020). Les valeurs positives (négatives) indiquent des précipitations décadaires supérieures (inférieures) à la moyenne à long terme ou à la climatologie. </p>
+        <h5>Anomalie de Précipitations Décadaires en Pourcentage</h5>
+        <p>La carte des anomalies de précipitations (en pourcentage) affiche la différence entre les précipitations décadaires les plus récentes et la moyenne à long terme (1991-2020), exprimée en pourcentage de la climatologie. Les valeurs positives (négatives) indiquent des précipitations décadaires supérieures (inférieures) à la moyenne à long terme ou à la climatologie.</p>
+        <h5>Précipitations Cumulées</h5>
+        <p>La carte de la pluviométrie cumulée affiche les précipitations cumulées à partir d'une journée sélectionnée par l'utilisateur.</p>
+        <h5>Anomalie des Précipitations Cumulées</h5>
+        <p>La carte de l'anomalie de la pluviométrie cumulée affiche la différence entre les précipitations cumulées à partir d'une journée sélectionnée par l'utilisateur et la moyenne à long terme (1991-2020) pour la même période. Les valeurs positives (négatives) indiquent des précipitations cumulées supérieures (inférieures) à la moyenne à long terme ou à la climatologie.</p>
+        <h5>Anomalie des Précipitations Cumulées en Pourcentage</h5>
+        <p>La carte des anomalies cumulées affiche la différence entre les précipitations cumulées d'une journée sélectionnée par l'utilisateur et la moyenne à long terme (1981-2010) pour la même période, exprimée en pourcentage de la climatologie. Les valeurs positives (négatives) indiquent des précipitations cumulées supérieures (inférieures) à la moyenne à long terme ou à la climatologie.</p>
+        <h5>Indice de Précipitations Standardisé</h5>
+        <p>Les cartes de SPI présentent l'index de précipitations standard de la décade la plus récente (en utilisant 1981 à la dernière année complète comme base de référence). Le SPI (McKee 1993) représente la déviation à laquelle un événement arrive, par rapport à la moyenne climatologique. Cette déviation est représentée en nombre d'écarts-types. Pour calculer l'indice, une série temporelle à long terme sur de nombreuses décades est utilisée pour estimer la fonction de densité de probabilités. Les analyses montrées ici sont basées sur la distribution de Pearson de Type III (c'est à dire 3 paramètres gamma) comme il est suggéré par Guttman (1999). La distribution de probabilités accumulées associée est ensuite estimée et transformée en une distribution normale. Le résultat est le SPI, qui peut être interprété comme une probabilité utilisant une distribution normale standard (c'est à dire que l'utilisateur peut s'attendre à ce que le SPI tombe à l'intérieur d'une marge d'un écart-type 68% du temps, et de deux écarts-types 95% du temps etc...).</p>
+
 dataset:
-    rawdata:
-        dataset: MON
-    climatology:
-        dataset: MON
-    anomaly:
-        dataset: MON
+    use: MON
+    variables:
+        rain_dek: [precip]
+        anom_dek: [precip]
+        anom_per_dek: [precip]
+        rain_cumul: [precip]
+        anom_cumul: [precip]
+        anom_per_cumul: [precip]
+        spi_dek: [precip]
+
+variables:
+    label:
+        en: Variable
+        fr: Variable
+    select:
+        rain_dek:
+            en: Dekadal Rainfall Amount
+            fr: Cumul de Précipitations Décadaires
+        anom_dek:
+            en: Dekadal Rainfall Anomaly
+            fr: Anomalie de Précipitations Décadaires
+        anom_per_dek:
+            en: Dekadal Rainfall Anomaly in Percent
+            fr: Anomalie de Précipitations Décadaires en Pourcentage
+        rain_cumul:
+            en: Cumulative Rainfall
+            fr: Précipitations Cumulées
+        anom_cumul:
+            en: Cumulative Rainfall Anomaly
+            fr: Anomalie des Précipitations Cumulées
+        anom_per_cumul:
+            en: Cumulative Rainfall Anomaly in Percent
+            fr: Anomalie des Précipitations Cumulées en Pourcentage
+        spi_dek:
+            en: Standard Precipitation Index (SPI)
+            fr: Indice de Précipitations Standardisé (SPI)
+
+opt_dates:
+    label:
+        en: Date
+        fr: Date
+    dekad:
+        en: Dekad of
+        fr: Décade du
+    cumul:
+        en: Cumulative rainfall from
+        fr: Cumul des précipitations du
+    todate:
+        en: to
+        fr: au
+
+opt_spi:
+    gamma:
+        en: Gamma
+    peasron3:
+        en: Pearson Type III
+    llogistic:
+        en: log-Logistic
+    zscore:
+        en: Z-Score
+
+opt_ts_raw:
+    label_date:
+        start:
+            en: Start
+            fr: Début
+        end:
+            en: End
+            fr: Fin
+    label_series:
+        en: Display
+        fr: Afficher
+    series:
+        one:
+            en: One serie
+            fr: Une série
+        years:
+            en: Each year
+            fr: Chaque année
+    start_mon:
+        en: Start month
+        fr: Début mois
+
+opt_ts_raw_plot:
+    label:
+        en: Plot type
+        fr: Type de graphique
+    select:
+        bar:
+            en: Bar
+            fr: Barre
+        line:
+            en: Line
+            fr: Ligne
+        lpoint:
+            en: Line + Points
+            fr: Ligne + Points
+
+opt_anomaly:
+    label:
+        en: Anomaly
+        fr: Anomalie
+    select:
+        difference:
+            en: Deviation from mean
+            fr: Écart par rapport à la moyenne
+        standardized:
+            en: Standardized anomaly
+            fr: Anomalie standardisée
+        percentage:
+            en: Percentage of mean
+            fr: Pourcentage de la moyenne
+
+opt_ts_anom:
+    label_date:
+        start:
+            en: Start
+            fr: Début
+        end:
+            en: End
+            fr: Fin
+    label_series:
+        en: Display
+        fr: Afficher
+    series:
+        one:
+            en: One serie
+            fr: Une série
+        tstep:
+            en: By dekad
+            fr: Par décade
+    label_tstep:
+        en: Dekad
+        fr: Décade

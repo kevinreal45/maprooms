@@ -27,7 +27,7 @@
         <div class="col-sm-4">
             {{ fmacros.create_card_charts("div-chart-raw", pageText) }}
             {% call fmacros.create_modal_expand_charts("div-chart-raw", pageText) %}
-            {{ fmacrosExp.create_expand_charts_raw("dekadal", pageText) }}
+            {{ fmacrosExp.create_expand_charts_raw("dekadal", pageText, urlArgs) }}
             {% endcall %}
         </div>
         <div class="col-sm-4">
@@ -39,7 +39,7 @@
         <div class="col-sm-4">
             {{ fmacros.create_card_charts("div-chart-anom", pageText) }}
             {% call fmacros.create_modal_expand_charts("div-chart-anom", pageText) %}
-            {{ fmacrosExp.create_expand_charts_anom("dekadal", pageText, fmacros) }}
+            {{ fmacrosExp.create_expand_charts_anom("dekadal", pageText, fmacros, urlArgs) }}
             {% endcall %}
         </div>
     </div>

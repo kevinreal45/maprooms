@@ -8,6 +8,22 @@ $(document).ready(function() {
     ////////////
     // Modal Expand Charts
 
+    $('.seasonal-raw-select2').select2({
+        minimumResultsForSearch: -1,
+        dropdownParent: $('#seasonal-raw-control')
+    });
+    $('#btn-div-chart-raw').on('click', () => {
+        setAnalysisExpandModalRaw('seasonal', 'div-chart-raw');
+    });
+
+    $('.seasonal-anom-select2').select2({
+        minimumResultsForSearch: -1,
+        dropdownParent: $('#seasonal-anom-control')
+    });
+    $('#btn-div-chart-anom').on('click', () => {
+        setAnalysisExpandModalAnom('seasonal', 'div-chart-anom');
+    });
+
     ////////////
     // initialize map
     const map_options = {};

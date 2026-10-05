@@ -5,7 +5,8 @@ from app.misc.scripts.telecon_proba import *
 from app.misc.scripts.telecon_seasonal import (
     telecon_oni_seasonal,
     telecon_iod_seasonal,
-    telecon_nao_seasonal
+    telecon_nao_seasonal,
+    telecon_atl3_seasonal
 )
 from app.scripts.util import pretty
 from app.scripts.maproom_items import parse_config_yaml_file
@@ -101,6 +102,13 @@ def _get_teleconnections_ts(params, xr_seas):
 
     if params['teleconIndex'] == 'nao':
         df_seas = telecon_nao_seasonal(
+            params,
+            start_date, end_date,
+            False
+        )
+
+    if params['teleconIndex'] == 'atl3':
+        df_seas = telecon_atl3_seasonal(
             params,
             start_date, end_date,
             False

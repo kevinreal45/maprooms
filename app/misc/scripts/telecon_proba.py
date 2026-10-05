@@ -58,6 +58,11 @@ def map_telecon_classes(params):
         tele_labels = ('Negative', 'Neutral', 'Positive')
         tele_values = ('negative', 'neutral', 'positive')
 
+    if params['teleconIndex'] == 'atl3':
+        tele_thres = [-0.35, 0.35]
+        tele_labels = ('Negative', 'Neutral', 'Positive')
+        tele_values = ('negative', 'neutral', 'positive')
+
     if params['teleconIndex'] == 'enso':
         tele_thres = [-0.45, 0.45]
         tele_labels = ('La Niña', 'Neutral', 'El Niño')

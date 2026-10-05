@@ -186,6 +186,31 @@ def update_nao_cpc_cdas_monthly():
         })
         _insert_data_into_table(nao, table_name, starts, last)
 
+def update_atl3_cpc_monthly():
+    table_name = 'atl3_cdas_cpc_monthly'
+    end_date = tableLastRecords(
+        table_name,
+        ['year', 'month'],
+        ['year', 'month'],
+        1
+    )
+
+    if len(end_date) == 0:
+        atl3 = get_atl3_cpc_monthly()
+        writeDataToTable(atl3, table_name)
+    else:
+        atl3 = get_atl3_cpc_monthly(lastrows=5)
+        last = pd.to_datetime(
+            f"{end_date[0]['year']}-{end_date[0]['month']}",
+            format='%Y-%m'
+        )
+        starts = pd.to_datetime({
+            'year': atl3['year'],
+            'month': atl3['month'],
+            'day': 1
+        })
+        _insert_data_into_table(atl3, table_name, starts, last)
+
 def _insert_data_into_table(data, table_name, starts, last):
     new_df = data[starts > last]
     if len(new_df) > 0:

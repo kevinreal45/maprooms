@@ -2,8 +2,26 @@ title:
     en: Climate Analysis
     fr: Analyse Climatique
 description: 
-    en: Historical, current and forecast climate conditions around the country.
-    fr: Conditions climatiques historiques, courantes et prévues dans le pays.
+    en: |
+        <p>
+        This Maproom provides access to historical climate information, including rainfall, temperature, and derived climate indicators, to help users understand climate variability, seasonality, long-term trends, and the likelihood of extreme events. 
+        </p>
+        <p>
+        It consists of several sub-maprooms (or products) that enable analysis at multiple temporal scales, including daily, dekadal (10-day), monthly, and seasonal periods.
+        </p>
+        <p>
+        Users can explore climate statistics, anomalies, probabilities, and historical trends.
+        </p>
+    fr: |
+        <p>
+        Cette Maproom donne accès à des informations climatiques historiques, notamment sur les précipitations, les températures et les indicateurs climatiques dérivés, afin d’aider les utilisateurs à comprendre la variabilité et la saisonnalité du climat, les tendances à long terme ainsi que la probabilité d’occurrence d’événements extrêmes.
+        </p>
+        <p>
+        Elle comprend plusieurs sous-maprooms (ou produits) permettant d’effectuer des analyses à différentes échelles temporelles, notamment journalière, décadaire (10 jours), mensuelle et saisonnière. 
+        </p>
+        <p>
+        Les utilisateurs peuvent explorer les statistiques climatiques, les anomalies, les probabilités et les tendances historiques.
+        </p>
 type: navigation-page
 # icon_function defined in /app/climate/analysis/scripts/icons.py
 icon_function: icon_monthly_analysis

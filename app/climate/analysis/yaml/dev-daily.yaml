@@ -92,6 +92,7 @@ parameters:
                 en: mm
                 fr: mm
             value: 500
+            dtype: float
         NumWD:
             select:
                 en: Number of wet days
@@ -100,6 +101,7 @@ parameters:
                 en: days
                 fr: jours
             value: 30
+            dtype: integer
         NumDD:
             select:
                 en: Number of dry days
@@ -108,6 +110,7 @@ parameters:
                 en: days
                 fr: jours
             value: 30
+            dtype: integer
         RainInt:
             select:
                 en: Rainfall intensity
@@ -116,6 +119,7 @@ parameters:
                 en: mm/day
                 fr: mm/jour
             value: 10
+            dtype: float
         NumDS:
             select:
                 en: Number of dry spells
@@ -124,6 +128,7 @@ parameters:
                 en: spells
                 fr: périodes
             value: 3
+            dtype: integer
         NumWS:
             select:
                 en: Number of wet spells
@@ -132,6 +137,7 @@ parameters:
                 en: spells
                 fr: périodes
             value: 3
+            dtype: integer
         LongDS:
             select:
                 en: Longest dry spell
@@ -140,6 +146,7 @@ parameters:
                 en: days
                 fr: jours
             value: 21
+            dtype: integer
         LongWS:
             select:
                 en: Longest wet spell
@@ -148,6 +155,7 @@ parameters:
                 en: days
                 fr: jours
             value: 10
+            dtype: integer
     temperature:
         MeanTemp:
             select:
@@ -157,6 +165,7 @@ parameters:
                 en: °C
                 fr: °C
             value: 20
+            dtype: float
         MinTemp:
             select:
                 en: Minimum temperature
@@ -165,6 +174,7 @@ parameters:
                 en: °C
                 fr: °C
             value: 10
+            dtype: float
         MaxTemp:
             select:
                 en: Maximum temperature
@@ -173,6 +183,7 @@ parameters:
                 en: °C
                 fr: °C
             value: 30
+            dtype: float
         NumCD:
             select:
                 en: Number of cold days
@@ -181,6 +192,7 @@ parameters:
                 en: days
                 fr: jours
             value: 30
+            dtype: integer
         NumHD:
             select:
                 en: Number of hot days
@@ -189,6 +201,7 @@ parameters:
                 en: days
                 fr: jours
             value: 30
+            dtype: integer
         CDD:
             select:
                 en: Chilling degree days
@@ -197,6 +210,7 @@ parameters:
                 en: °C-days
                 fr: °C-jours
             value: 100
+            dtype: float
         HDD:
             select:
                 en: Heating degree days
@@ -205,6 +219,7 @@ parameters:
                 en: °C-days
                 fr: °C-jours
             value: 100
+            dtype: float
         GDD:
             select:
                 en: Growing degree days
@@ -213,6 +228,7 @@ parameters:
                 en: °C-days
                 fr: °C-jours
             value: 100
+            dtype: float
 parameters_order:
     rainfall: [TotRain, NumWD, NumDD, RainInt, NumDS, NumWS, LongDS, LongWS]
     temperature: [MeanTemp, MinTemp, MaxTemp, NumCD, NumHD, CDD, HDD, GDD]

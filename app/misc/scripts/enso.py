@@ -169,6 +169,25 @@ def format_oni_table_df(tables, table_nb, roni=True):
     
     return anom.dropna(subset=['anom'])
 
+def format_atl3_table_df(tables, table_nb):
+    table = tables[table_nb].copy()
+    table.columns = table.iloc[0]
+    table = table.iloc[1:].reset_index(drop=True)
+
+    atl3 = table.melt(
+        id_vars='Year',
+        var_name='month',
+        value_name='atl3',
+    )
+    atl3 = atl3.rename(columns={'Year': 'year'})
+    iyear = atl3['year'].astype(str).str.fullmatch(r'\d{4}')
+    atl3 = atl3.loc[iyear].copy()
+    atl3['year'] = pd.to_numeric(atl3['year']).astype(int)
+    atl3['month'] = pd.to_datetime(atl3['month'], format='%b').dt.month
+    atl3['atl3'] = pd.to_numeric(atl3['atl3'], errors='coerce')
+    atl3 = atl3.sort_values(['year', 'month']).reset_index(drop=True)
+    return atl3.dropna(subset=['atl3'])
+
 def format_df_data_numeric(data):
     df = data.copy()
     df = df.apply(pd.to_numeric, errors='coerce')
@@ -210,6 +229,27 @@ def get_enso_oni_cpc(parse_web_table=False, lastrows=None):
         else:
             oni = pd.read_fwf(url_oni, skiprows=1, names=names)
         return format_oni_data_df(oni)
+
+def get_atl3_cpc_monthly(parse_web_table=False, lastrows=None):
+    # Period: 1950 - present
+    # Centered 30-year base periods updated every 10 years
+    # monthly data
+    # TNA  : SSTA averaged in [60ºW-30ºW, 5ºN-20ºN]
+    # TSA : SSTA averaged in [30ºW-10ºE, 20ºS-0]
+    # MGI = TNA - TSA
+    # ATL3 :  SSTA averaged in [20ºW-0, 2.5ºS-2.5N]
+    if parse_web_table:
+        url_atl3 = 'https://www.cpc.ncep.noaa.gov/products/international/ocean_monitoring/IODMI/ATL3_month.html'
+        tables = pd.read_html(url_atl3, encoding='utf-8')
+        return format_atl3_table_df(tables, 0)
+    else:
+        url_atl3 = 'https://www.cpc.ncep.noaa.gov/products/international/ocean_monitoring/IODMI/mnth.ersstv6.clim19912020.tav_current.txt'
+        names = ['year', 'month',  'tna', 'tsa', 'mgi', 'atl3']
+        if lastrows:
+            atl3 = partial_read_fwf(url_atl3, lastrows, names=names)
+        else:
+            atl3 = pd.read_fwf(url_atl3, skiprows=14, names=names)
+        return format_df_data_numeric(atl3)
 
 def get_enso_oisstv21_cpc(time_res='weekly', lastrows=None):
     # OISST.v2.1
@@ -616,5 +656,10 @@ def read_iod_data_monthly(sst_product, columns='*', start=None, end=None, month=
 
 def read_nao_data_monthly(columns='*', start=None, end=None, month=None):
     table = 'nao_cdas_cpc_monthly'
+    df = readENSOMonthlyDataFrame(table, columns, start, end, month)
+    return df.dropna()
+
+def read_atl3_data_monthly(columns='*', start=None, end=None, month=None):
+    table = 'atl3_cdas_cpc_monthly'
     df = readENSOMonthlyDataFrame(table, columns, start, end, month)
     return df.dropna()

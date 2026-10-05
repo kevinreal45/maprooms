@@ -493,7 +493,7 @@ function queryParamsClimateMonitoringMap(time_res) {
         if (['rain_cumul', 'anom_cumul', 'anom_per_cumul'].includes(query.map_variable)) {
             const start_dek = $(`#${time_res}-start-cumul-calendar`).val();
 
-            if (!checkDatesDekadCumul(start_dek, date)) {
+            if (!checkDatesCumul(start_dek, date)) {
                 return false;
             }
             query.startDekad = formatDekadDate(start_dek);
@@ -527,7 +527,11 @@ function queryParamsClimateMonitoringMap(time_res) {
     } else if (time_res === 'seasonal') {
         const date = $(`#${time_res}-map-date-calendar`).val();
         query.seasLength = parseInt($(`#${time_res}-map-date-length`).val(), 10);
-        query.Date = formatSeasonDate(date, query.seasLength);
+        if (query.map_variable === 'spi_seas') {
+            query.Date = formatSeasonDate(date, query.seasLength, isStart = false);
+        } else {
+            query.Date = formatSeasonDate(date, query.seasLength);
+        }
         if (query.map_variable === 'anom_seas') {
             query.anomaly = 'difference';
         }
@@ -537,7 +541,7 @@ function queryParamsClimateMonitoringMap(time_res) {
         if (query.map_variable === 'spi_seas') {
             query.analysis = 'spi';
             query.distribution = 'gamma';
-            query.timeScale = parseInt($(`#${time_res}-spi-time-scale`).val(), 10);
+            query.timeScale = query.seasLength;
             query.timeRes = 'monthly';
         }
     } else {
@@ -548,38 +552,7 @@ function queryParamsClimateMonitoringMap(time_res) {
     if (!colorbar) {
         return false;
     }
-
-    if (
-        ['spi_dek', 'spi_mon', 'spi_seas']
-        .includes(query.map_variable)
-    ) {
-        query.colorbar = colorbarSetDefault(
-            colorbar, 'spi_colors', [-2, -1.5, -1, 1, 1.5, 2]
-        );
-    } else if (
-        ['rain_dek', 'rain_cumul', 'rain_mon', 'rain_seas']
-        .includes(query.map_variable)
-    ) {
-        query.colorbar = colorbarSetDefault(
-            colorbar, 'precipitation_3'
-        );
-    } else if (
-        ['anom_dek', 'anom_cumul', 'anom_mon', 'anom_seas']
-        .includes(query.map_variable)
-    ) {
-        query.colorbar = colorbarSetDefault(
-            colorbar, 'anomalies_4'
-        );
-    } else if (
-        ['anom_per_dek', 'anom_per_cumul', 'anom_per_mon', 'anom_per_seas']
-        .includes(query.map_variable)
-    ) {
-        query.colorbar = colorbarSetDefault(
-            colorbar, 'anomalies_3'
-        );
-    } else {
-        query.colorbar = colorbarSetDefault(colorbar);
-    }
+    query.colorbar = colorbar;
 
     return query;
 }

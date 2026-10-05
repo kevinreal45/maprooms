@@ -7,13 +7,13 @@ from app.dst_api.scripts import (
 from app.scripts.util import pretty
 
 def climate_monitoring_ts_cumul(params):
-    params = _create_params_ts_dek(params)
-    dek_data = download_rawdata(params)
-    dek_data = json.loads(dek_data)
-    if dek_data['status'] != 0: return dek_data
-    dek_data['data'] = json.loads(dek_data['data'])
-    time_ts = _format_ts_dates(dek_data['data']['Dates'])
-    dek_ts = ['-'.join(d.split('-')[1:]) for d in time_ts]
+    params = _create_params_ts(params)
+    data_raw = download_rawdata(params)
+    data_raw = json.loads(data_raw)
+    if data_raw['status'] != 0: return data_raw
+    data_raw['data'] = json.loads(data_raw['data'])
+    time_ts = _format_ts_dates(data_raw['data']['Dates'])
+    date_ts = ['-'.join(d.split('-')[1:]) for d in time_ts]
 
     params_mean = _create_params_ts_clim_mean(params)
     data_mean = extract_climdata(params_mean)
@@ -33,12 +33,12 @@ def climate_monitoring_ts_cumul(params):
     lookup_clim = {
         d: i for i, d in enumerate(dek_clim)
     }
-    it = np.array([lookup_clim[d] for d in dek_ts])
+    it = np.array([lookup_clim[d] for d in date_ts])
     clim_m = np.array(data_mean['data']['Data'][0]['Values'])
     clim_m = np.cumsum(clim_m[it])
     clim_p = np.column_stack(data_perc['data']['Data'][0]['Values'])
     clim_p = np.cumsum(clim_p[it, :], axis=0)
-    ts_d = np.array(dek_data['data']['Data'][0]['Values'])
+    ts_d = np.array(data_raw['data']['Data'][0]['Values'])
     ts_d = np.cumsum(ts_d)
 
     ymin = min(
@@ -87,9 +87,7 @@ def climate_monitoring_ts_cumul(params):
     }
     return {'status': 0, 'data': data}
 
-def _create_params_ts_dek(params):
-    params['startDate'] = params['startDekad']
-    params['endDate'] = params['Date']
+def _create_params_ts(params):
     pars_0 = {
         'gridded': False,
         'outFormat': 'JSON-Format',
@@ -104,9 +102,6 @@ def _create_params_ts_dek(params):
     return pars | params
 
 def _create_params_ts_clim_mean(params):
-    params['startYear'] = 1991
-    params['endYear'] = 2020
-    params['minYear'] = 30
     pars_0 = {
         'climFunction': 'mean',
         'fullYear': True,

@@ -2,10 +2,26 @@ title:
     en: Climate and Agriculture
     fr: Climat et Agriculture
 description: 
-    en: The variability of seasonal precipitation, and the sub-seasonal statistics of these,
-        play a key role in the quality and quantity of agricultural output.
-    fr: La variabilité des précipitations saisonnières, et leurs statistiques sub-saisonnières,
-        jouent une rôle clé dans le bon déroulement de la campagne agricole, ce qualitativement comme quantativement.
+    en: |
+        <p>
+        The <strong>Climate and Agriculture Maproom</strong> provides farmers, extension agents, planners, and other stakeholders with access to historical climate information and analysis tools that support informed agricultural decision-making.
+        </p>
+        <p>
+        The Maproom includes specialized products such as daily rainfall analysis, historical rainfall onset and cessation dates, season length estimates, and crop climate suitability assessments. 
+        </p>
+        <p>
+        By identifying the start and end of the rainy season using agronomically relevant criteria, the system supports planning around crop growth cycles and seasonal risks.
+        </p>
+    fr: |
+        <p>
+        La <strong>Maproom Climat et Agriculture</strong> permet aux agriculteurs, aux agents de vulgarisation agricole, aux planificateurs et aux autres parties prenantes d’accéder à des informations climatiques historiques ainsi qu’à des outils d’analyse favorisant une prise de décision éclairée dans le secteur agricole.
+        </p>
+        <p>
+        Elle comprend des produits spécialisés tels que l’analyse des précipitations journalières, les dates historiques de début et de fin de la saison des pluies, les estimations de la durée de la saison et les évaluations de l’adéquation entre les conditions climatiques et les cultures.
+        </p>
+        <p>
+        En déterminant le début et la fin de la saison des pluies selon des critères pertinents sur le plan agronomique, le système facilite la planification des cycles de croissance des cultures et la gestion des risques saisonniers.
+        </p>
 type: navigation-card
 # icon_image from /app/static/images/card_icons
 icon_image: default-emi_climate_agriculture.gif

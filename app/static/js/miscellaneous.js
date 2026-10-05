@@ -110,7 +110,7 @@ function initiDialogBoxSelect2(selector, controlSelector) {
     });
 }
 
-function checkDatesDekadCumul(start_dek, end_dek) {
+function checkDatesCumul(start_dek, end_dek) {
     const date1 = new Date(start_dek);
     const date2 = new Date(end_dek);
     if (date1 >= date2) {
@@ -355,6 +355,8 @@ function getTempCoverageCalendarEnso(tempRes, ensoPars) {
         temp_cov = DATA_ENSO[ensoPars.ensoIdx][ensoPars.iod].coverage;
     } else if (ensoPars.ensoIdx === 'nao') {
         temp_cov = DATA_ENSO[ensoPars.ensoIdx][ensoPars.nao].coverage;
+    } else if (ensoPars.ensoIdx === 'atl3') {
+        temp_cov = DATA_ENSO[ensoPars.ensoIdx][ensoPars.atl3].coverage;
     } else if (ensoPars.ensoIdx === 'anom') {
         if (ensoPars.ensoTRes === 'weekly') {
             temp_cov = DATA_ENSO[ensoPars.ensoIdx][ensoPars.ensoTRes][ensoPars.week].coverage;
@@ -444,6 +446,24 @@ function setAnalysisVisibilityEnso(time_res) {
                 `${time_res}-anom-ninotype-opt`
             ]
         );
+    } else if (ensoIdx === 'atl3') {
+        setVisibility(
+            [
+                `${time_res}-enso-startdate-opt`,
+                `${time_res}-enso-enddate-opt`,
+                `${time_res}-disp-image-enso-opt`,
+                `${time_res}-disp-lastval-enso-opt`
+            ],
+            [
+                `${time_res}-iod-sst-opt`,
+                `${time_res}-oni-indices-opt`,
+                `${time_res}-anom-tempres-opt`,
+                `${time_res}-anom-sstweek-opt`,
+                `${time_res}-anom-sstmonth-opt`,
+                `${time_res}-anom-ninoregion-opt`,
+                `${time_res}-anom-ninotype-opt`
+            ]
+        );
     } else {
         const ensoTRes = $(`#${time_res}-anom-tempres`).val();
         if (ensoTRes === 'weekly') {
@@ -485,7 +505,7 @@ function setAnalysisVisibilityEnso(time_res) {
         }
     }
 
-    if (['oni', 'iod', 'nao', 'anom'].includes(ensoIdx)) {
+    if (['oni', 'iod', 'nao', 'atl3', 'anom'].includes(ensoIdx)) {
         const ensoImg = $(`#${time_res}-disp-image-enso`).val();
         if (ensoImg === 'image') {
             $(`#${time_res}-disp-lastval-enso-opt`).show();
@@ -555,7 +575,7 @@ function setAnalysisDateCalendarEnso(tempRes) {
     }
 
     let ensoTRes;
-    if (['oni', 'iod', 'nao'].includes(ensoIdx)) {
+    if (['oni', 'iod', 'nao', 'atl3'].includes(ensoIdx)) {
         ensoTRes = 'monthly';
     } else {
         ensoTRes = $(`#${tempRes}-anom-tempres`).val();
@@ -566,6 +586,7 @@ function setAnalysisDateCalendarEnso(tempRes) {
     ensoPars.oni = $(`#${tempRes}-oni-indices`).val();
     ensoPars.iod = $(`#${tempRes}-iod-sst`).val();
     ensoPars.nao = $(`#${tempRes}-nao-cdas`).val();
+    ensoPars.atl3 = $(`#${tempRes}-atl3-cdas`).val();
     ensoPars.week = $(`#${tempRes}-anom-sstweek`).val();
     ensoPars.month = $(`#${tempRes}-anom-sstmonth`).val();
     const temp_cov = getTempCoverageCalendarEnso(tempRes, ensoPars);
@@ -671,12 +692,23 @@ function setAnalysisDateCalendarMonDay(tempRes, chType) {
 }
 
 function setAnalysisDateCalendarRaw(tempRes) {
+    let tperiod = 5;
+    let disp_year = false;
+    if (tempRes === 'seasonal') {
+        tperiod = 30;
+        disp_year = true;
+    }
+
     const end_date = $(`#${tempRes}-chart-raw-enddate-calendar`).val();
     let disp_end;
     if (end_date === '') {
         disp_end = null;
     } else {
-        disp_end = end_date;
+        if (end_date.length == 4) {
+            disp_end = `${end_date}-12`;
+        } else {
+            disp_end = end_date;
+        }
     }
 
     setDateCalendar(
@@ -685,7 +717,7 @@ function setAnalysisDateCalendarRaw(tempRes) {
         DATA_SET.use,
         tempRes, disp_end,
         mapNavigation = false,
-        dispYear = false,
+        dispYear = disp_year,
         isStart = false
     );
 
@@ -695,11 +727,15 @@ function setAnalysisDateCalendarRaw(tempRes) {
         const varTs = $(`#${tempRes}-chart-raw-variable`).val();
         const trange = getTemporalRangeCalendar(
             DATA_SET.use,
-            tempRes, varTs, 5
+            tempRes, varTs, tperiod
         );
         disp_start = trange.start;
     } else {
-        disp_start = start_date;
+        if (start_date.length == 4) {
+            disp_start = `${start_date}-01`;
+        } else {
+            disp_start = start_date;
+        }
     }
 
     setDateCalendar(
@@ -708,7 +744,7 @@ function setAnalysisDateCalendarRaw(tempRes) {
         DATA_SET.use,
         tempRes, disp_start,
         mapNavigation = false,
-        dispYear = false,
+        dispYear = disp_year,
         isStart = true
     );
 }
@@ -739,12 +775,16 @@ function setRainySeasonCalendarOnset(tempRes, chartType = null) {
 
 //////////////
 
-function setClimateSeasonStartLengthExpand(tempRes, cType, boxCtrl) {
+function setClimateSeasonStartLengthExpand(
+    tempRes, cType, boxCtrl,
+    startMonth = SEASON_DEF.months.start
+) {
     setNamesCalendar(
         `${tempRes}-${cType}-startmon`,
         tempRes,
         $(`#${tempRes}-${boxCtrl}-control`),
-        mapNavigation = false
+        mapNavigation = false,
+        startMonth = startMonth
     );
 
     setClimateSeasonLengthExpand(tempRes, `${cType}-seaslen`);

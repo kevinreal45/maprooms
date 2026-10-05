@@ -3,7 +3,8 @@ import pandas as pd
 from .enso import (
     read_enso_data_monthly,
     read_nao_data_monthly,
-    read_iod_data_monthly
+    read_iod_data_monthly,
+    read_atl3_data_monthly,
 )
 from app.dst_api.scripts import nbdays_of_month
 
@@ -20,6 +21,20 @@ def telecon_nao_seasonal(params, start, end, fullSeas=False):
         nao_seas = nao_seas[['year', 'value']]
 
     return nao_seas
+
+def telecon_atl3_seasonal(params, start, end, fullSeas=False):
+    atl3 = _telecon_atl3_seasonal(
+        params['seasLength'], start, end
+    )
+
+    if fullSeas:
+        atl3_seas = atl3.reset_index(drop=True)
+    else:
+        seas = atl3['month'] == params['seasStart']
+        atl3_seas = atl3[seas].reset_index(drop=True)
+        atl3_seas = atl3_seas[['year', 'value']]
+
+    return atl3_seas
 
 def telecon_iod_seasonal(params, sst_prod, start, end, fullSeas=False):
     iod = _telecon_iod_seasonal(
@@ -113,6 +128,24 @@ def _telecon_nao_seasonal(seas_len, start, end):
     nao_seas = pd.concat(nao_seas, ignore_index=True)
     nao_seas = nao_seas.sort_values(by=['year', 'month'])
     return nao_seas[['year', 'month', 'value']]
+
+def _telecon_atl3_seasonal(seas_len, start, end):
+    atl3 = read_atl3_data_monthly(
+        columns=['year', 'month', 'atl3'],
+        start=start, end=end
+    )
+    atl3.columns = ['year', 'month', 'value']
+
+    atl3_seas = []
+    for s in range(1, 13):
+        tmp = _telecon_aggregate_seasonal(
+            atl3, s, seas_len
+        )
+        tmp['month'] = s
+        atl3_seas += [tmp]
+    atl3_seas = pd.concat(atl3_seas, ignore_index=True)
+    atl3_seas = atl3_seas.sort_values(by=['year', 'month'])
+    return atl3_seas[['year', 'month', 'value']]
 
 def _telecon_iod_seasonal(sst_prod, seas_len, start, end):
     iod = read_iod_data_monthly(

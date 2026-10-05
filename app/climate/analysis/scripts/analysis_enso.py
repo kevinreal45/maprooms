@@ -10,6 +10,7 @@ from app.misc.scripts.enso import (
     read_enso_oni_cpc,
     read_iod_data_monthly,
     read_nao_data_monthly, 
+    read_atl3_data_monthly, 
     read_enso_data_monthly,
     read_enso_data_weekly,
     enso_alert_classification
@@ -226,6 +227,53 @@ def climate_analysis_enso_charts(params):
                 'ytick': ytick,
                 'time_res': 'monthly',
                 'name': 'NAO',
+                'units': '',
+                'imgPNG': params['imgPNG']
+            }
+    elif params['teleconIndex'] == 'atl3':
+        atl3 = read_atl3_data_monthly(
+            columns='*',
+            start=params['startDate'],
+            end=params['endDate']
+        )
+
+        ylab = 'Atlantic 3 Index'
+        thres = 0.4
+        ytick = 0.4
+        ymax = np.array([atl3['atl3'].min(), atl3['atl3'].max()])
+        ymax = np.max(np.abs(ymax)) + ytick/2
+
+        if params['imgPNG']:
+            figW = sW * 1.5873
+            figH = sH * 1.0143
+            img_png = plot_enso_monthly(
+                atl3,
+                col='atl3',
+                thres=thres,
+                ymax=ymax,
+                ytick=ytick,
+                ylab=ylab,
+                figsize=(figW, figH),
+                dispLastValue=params['dispLastValue'],
+                varUnits=''
+            )
+            data = {
+                'png': img_png,
+                'imgPNG': params['imgPNG']
+            }
+        else:
+            atl3['day'] = 16
+            atl3['time'] = pd.to_datetime(atl3[['year', 'month', 'day']])
+            atl3['time'] = atl3['time'].dt.strftime('%Y-%m-%d')
+            data = {
+                'time': atl3['time'].tolist(),
+                'values': atl3['atl3'].tolist(),
+                'ylab': ylab,
+                'thres': thres,
+                'ymax': ymax, 
+                'ytick': ytick,
+                'time_res': 'monthly',
+                'name': 'ATL3',
                 'units': '',
                 'imgPNG': params['imgPNG']
             }

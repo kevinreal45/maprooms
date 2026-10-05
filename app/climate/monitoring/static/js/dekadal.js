@@ -7,7 +7,31 @@ $(document).ready(function() {
 
     ////////////
     // Modal Expand Charts
+    $('.dekadal-raw-select2').select2({
+        minimumResultsForSearch: -1,
+        dropdownParent: $('#dekadal-raw-control')
+    });
+    $('#btn-div-chart-raw').on('click', () => {
+        setAnalysisExpandModalRaw('dekadal', 'div-chart-raw');
+    });
 
+    //
+    $('.dekadal-cumul-select2').select2({
+        minimumResultsForSearch: -1,
+        dropdownParent: $('#dekadal-cumul-control')
+    });
+    $('#btn-div-chart-cumul').on('click', () => {
+        setAnalysisExpandModalCumul('dekadal', 'div-chart-cumul');
+    });
+
+    //
+    $('.dekadal-anom-select2').select2({
+        minimumResultsForSearch: -1,
+        dropdownParent: $('#dekadal-anom-control')
+    });
+    $('#btn-div-chart-anom').on('click', () => {
+        setAnalysisExpandModalAnom('dekadal', 'div-chart-anom');
+    });
 
     ////////////
     // initialize map

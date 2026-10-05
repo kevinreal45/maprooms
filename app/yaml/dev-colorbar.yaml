@@ -2,7 +2,7 @@
 colorbar_color_list: [
                 tim_colors, tercile_enso, spi_colors,
                 precipitation_1, precipitation_2, precipitation_3,
-                anomalies_1, anomalies_2, anomalies_3,
+                anomalies_1, anomalies_2, anomalies_3, anomalies_4,
                 'rainbow', 'turbo', 'viridis', 'inferno',
                 'jet', 'plasma', 'magma', 'plasma',
                 'hsv', 'hot', 'cool', 'spring', 'summer',

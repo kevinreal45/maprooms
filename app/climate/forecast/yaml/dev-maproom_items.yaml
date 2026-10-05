@@ -2,8 +2,26 @@ title:
     en: Climate Forecast
     fr: Prévision Climatique
 description: 
-    en: Historical, current and forecast climate conditions around the country.
-    fr: Conditions climatiques historiques, courantes et prévues dans le pays.
+    en: |
+        <p>
+        The Climate Forecast Maproom presents 10-day, monthly, and seasonal climate forecasts in a user-friendly and decision-relevant format, making forecast information more accessible and actionable for a wide range of users.
+        </p>
+        <p>
+        Users can explore forecasted rainfall, conditions and compare them with long-term climatological averages or expected seasonal conditions. This helps users better understand the likelihood of above-normal, near-normal, or below-normal conditions and their potential implications for sectors such as agriculture, water resources, health, and disaster risk management. 
+        </p>
+        <p>
+        It is important to note that the Maproom does not generate forecasts itself; rather, it serves as a platform for visualizing forecasts produced by the National Meteorological Services.
+        </p>
+    fr: |
+        <p>
+        La Prévision Climatique présente des prévisions climatiques décadaires (10 jours), mensuelles et saisonnières dans un format convivial et adapté à la prise de décision, rendant ainsi les informations prévisionnelles plus accessibles et directement exploitables par un large éventail d’utilisateurs.
+        </p>
+        <p>
+        Les utilisateurs peuvent consulter les prévisions de précipitations et de conditions climatiques, puis les comparer aux moyennes climatologiques à long terme ou aux conditions saisonnières attendues. Cela leur permet de mieux comprendre la probabilité de conditions supérieures à la normale, proches de la normale ou inférieures à la normale, ainsi que leurs conséquences potentielles pour des secteurs tels que l’agriculture, les ressources en eau, la santé et la gestion des risques de catastrophe.
+        </p>
+        <p>
+        Il est important de préciser que la Maproom ne produit pas elle-même les prévisions. Elle sert plutôt de plateforme de visualisation des prévisions élaborées par les Services Météorologiques Nationaux.
+        </p>
 type: navigation-page
 # icon_function defined in /app/climate/forecast/scripts/icons.py
 icon_function: icon_climate_forecast

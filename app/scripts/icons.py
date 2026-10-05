@@ -15,7 +15,7 @@ from app.agriculture.analysis.scripts.icons import *
 from app.climate.analysis.scripts.icons import *
 from app.climate.forecast.scripts.icons import *
 from app.climate.monitoring.scripts.icons import *
-from app.health.scripts.icons import *
+from app.health.malaria.scripts.icons import *
 
 def create_icon_function(fun):
     icon_fun = eval(fun)

@@ -9,9 +9,9 @@ from app.dst_api.scripts import (
     get_zarr_dataset,
     get_zarr_clim
 )
+from app.scripts.util import parse_json_spatial_data
 
 from app.scripts.colorbar import check_invalid_colors
-from app.scripts.util import parse_json_spatial_data
 from app.scripts.imagepng import create_imagePng
 from app.scripts.util import pretty
 

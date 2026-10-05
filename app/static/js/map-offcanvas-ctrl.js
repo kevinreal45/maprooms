@@ -35,8 +35,11 @@ function setOffCanvasMapControl(tempRes) {
     $(`#${tempRes}-map-climato-func`).trigger('change');
 }
 
-function setAnalysisSeasonMonths(tempRes, mapType) {
+function setAnalysisSeasonMonths(tempRes, mapType, dispText = true) {
     if (tempRes !== 'seasonal') return;
+
+    $(`#${tempRes}-season-months`).empty();
+    if (!dispText) return;
 
     const map_type = $(`#${tempRes}-map-type`).val();
     const tstepID = `${tempRes}-map-date`;
@@ -547,23 +550,50 @@ function setOffCanvasMapControlMonitoring(tempRes) {
             .on(`change.monitDekadal`, function() {
                 setMonitoringVisibilityDekadal(tempRes, $(this).val());
                 setMonitoringCalendar(tempRes, $(this).val());
+                setMonitoringColorbar($(this).val());
             });
-        $(`#${tempRes}-map-variable`).trigger('change');
     } else if (tempRes === 'monthly') {
         $(`#${tempRes}-map-variable`)
             .off(`change.monitMonthly`)
             .on(`change.monitMonthly`, function() {
                 setMonitoringCalendar(tempRes, $(this).val());
+                setMonitoringColorbar($(this).val());
             });
-        $(`#${tempRes}-map-variable`).trigger('change');
     } else {
         $(`#${tempRes}-map-variable`)
             .off(`change.monitSeasnal`)
             .on(`change.monitSeasonal`, function() {
                 setMonitoringSeasonal(tempRes, $(this).val());
+                setMonitoringColorbar($(this).val());
             });
     }
     $(`#${tempRes}-map-variable`).trigger('change');
+}
+
+function setMonitoringColorbar(variable) {
+    if (
+        ['spi_dek', 'spi_mon', 'spi_seas']
+        .includes(variable)
+    ) {
+        colorbarSetDefault('spi_colors', [-2, -1.5, -1, 1, 1.5, 2]);
+    } else if (
+        ['rain_dek', 'rain_cumul', 'rain_mon', 'rain_seas']
+        .includes(variable)
+    ) {
+        colorbarSetDefault('precipitation_3');
+    } else if (
+        ['anom_dek', 'anom_cumul', 'anom_mon', 'anom_seas']
+        .includes(variable)
+    ) {
+        colorbarSetDefault('anomalies_4');
+    } else if (
+        ['anom_per_dek', 'anom_per_cumul', 'anom_per_mon', 'anom_per_seas']
+        .includes(variable)
+    ) {
+        colorbarSetDefault('anomalies_3');
+    } else {
+        colorbarSetDefault();
+    }
 }
 
 function setMonitoringVisibilityDekadal(tempRes, variable) {
@@ -581,42 +611,40 @@ function setMonitoringVisibilityDekadal(tempRes, variable) {
 }
 
 function setMonitoringSeasonal(tempRes, variable) {
+    const temp_cov = getTempCoverageCalendar(
+        DATA_SET.use, tempRes, variable
+    );
+    let dispDate;
     if (variable === 'spi_seas') {
-        setVisibility(
-            [`${tempRes}-time-scale-div`],
-            [`${tempRes}-map-date-div`]
-        );
-
-        for (let l = 2; l <= 12; l++) {
-            $(`#${tempRes}-spi-time-scale`).append(
-                $('<option>').text(l).val(l)
-            );
-        }
-        $(`#${tempRes}-spi-time-scale`).val(SEASON_DEF.months.length);
+        dispDate = temp_cov.end;
     } else {
-        setVisibility(
-            [`${tempRes}-map-date-div`],
-            [`${tempRes}-time-scale-div`]
-        );
-
-        temp_cov = getTempCoverageCalendar(
-            DATA_SET.use, tempRes, variable
-        );
         const mon = -1 * SEASON_DEF.months.length + 1;
         const disp_d = addDateMonths(temp_cov.end, mon);
-        const dispDate = formatDateToString(disp_d);
-        setMonitoringCalendar(tempRes, variable, dispDate);
-
-        setAnalysisSeasonLengthMap(tempRes);
-        adjustSelect2Height(`${tempRes}-map-date-length`, true);
-
-        $(`#${tempRes}-map-date-length`)
-            .off(`change.monitSeasonLength`)
-            .on(`change.monitSeasonLength`, function() {
-                setAnalysisSeasonMonths(tempRes, 'rawdata');
-            });
-        $(`#${tempRes}-map-date-length`).trigger('change');
+        dispDate = formatDateToString(disp_d);
     }
+    setMonitoringCalendar(tempRes, variable, dispDate);
+
+    setAnalysisSeasonLengthMap(tempRes);
+    adjustSelect2Height(`${tempRes}-map-date-length`, true);
+
+    let dispText;
+    if (variable === 'spi_seas') {
+        $(`#${tempRes}-map-date-label1`).text(SEAS_LABELS.end_month);
+        $(`#${tempRes}-map-date-label2`).text(SEAS_LABELS.time_scale);
+        dispText = false;
+    } else {
+        $(`#${tempRes}-map-date-label1`).text(SEAS_LABELS.start);
+        $(`#${tempRes}-map-date-label2`).text(SEAS_LABELS.length);
+        dispText = true;
+    }
+
+    $(`#${tempRes}-map-date-length`)
+        .off(`change.monitSeasonLength`)
+        .on(`change.monitSeasonLength`, function() {
+            setAnalysisSeasonMonths(tempRes, 'rawdata', dispText);
+        });
+    $(`#${tempRes}-map-date-length`).trigger('change');
+
 }
 
 function setMonitoringCalendar(tempRes, variable, dispDate = null) {

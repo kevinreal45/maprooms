@@ -5,7 +5,8 @@ from app.dst_api.scripts import aggregate_seasonal_xrdata
 from app.misc.scripts.telecon_seasonal import (
     telecon_oni_seasonal,
     telecon_iod_seasonal,
-    telecon_nao_seasonal
+    telecon_nao_seasonal,
+    telecon_atl3_seasonal
 )
 from app.misc.scripts.telecon_proba import *
 from app.scripts._cache import cache, hash_pamars_telecon_map
@@ -78,6 +79,13 @@ def _conditional_probability_sp(params):
 
     if params['teleconIndex'] == 'nao':
         df_seas = telecon_nao_seasonal(
+            params,
+            start_date, end_date,
+            params['fullSeas']
+        )
+
+    if params['teleconIndex'] == 'atl3':
+        df_seas = telecon_atl3_seasonal(
             params,
             start_date, end_date,
             params['fullSeas']

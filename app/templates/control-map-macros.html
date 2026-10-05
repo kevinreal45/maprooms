@@ -333,6 +333,10 @@
             {% if key=='nao' and not pageText.display_nao %}
             {% continue %}
             {% endif %}
+            <!--  -->
+            {% if key=='atl3' and not pageText.display_atl3 %}
+            {% continue %}
+            {% endif %}
             <option value="{{key}}">{{value}}</option>
             {% endfor %}
         </select>
@@ -629,38 +633,28 @@
         {% endif %}
         <!--  -->
         {% if tempRes == 'seasonal' %}
-        <div id="{{ tempRes }}-map-date-div" class="container-fluid" style="display: none;">
+        <div id="{{ tempRes }}-map-date-div" class="container-fluid">
             <div class="row gx-1">
-                <div class="col-sm-6">
+                <div id="{{ tempRes }}-map-date-label1" class="col-sm-6">
                     {{ pageText.opt_dates.start }}
                 </div>
-                <div class="col-sm-4">
+                <div id="{{ tempRes }}-map-date-label2" class="col-sm-4">
                     {{ pageText.opt_dates.length }}
                 </div>
+                <div class="col-sm-2"></div>
             </div>
-            <div class="row gx-1">
+            <div class="row gx-1 flex-nowrap">
                 <div id="{{ tempRes }}-map-date" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Date" class="col-sm-6">
                     <input id="{{ tempRes }}-map-date-calendar" type="text" class="form-control">
                 </div>
-                <div id="div-{{ tempRes }}-map-date-length" class="col-sm-4">
+                <div id="div-{{ tempRes }}-map-date-length" class="col-sm-2">
                     <select id="{{ tempRes }}-map-date-length" class="form-select form-select2-nosearch"></select>
+                </div>
+                <div class="col-sm-4 ps-1 d-flex justify-content-start">
+                    -{{ pageText.opt_dates.months }}
                 </div>
             </div>
             <div id="{{ tempRes }}-season-months" class="d-flex justify-content-center">
-            </div>
-        </div>
-        <!--  -->
-        <div id="{{ tempRes }}-time-scale-div" class="container-fluid" style="display: none;">
-            <div class="row gx-1 align-items-center">
-                <div class="col-sm-6 d-flex justify-content-end">
-                    {{ pageText.opt_dates.time_scale }}
-                </div>
-                <div class="col-sm-1">
-                    <select id="{{ tempRes }}-spi-time-scale" class="form-select form-select2-nosearch"></select>
-                </div>
-                <div class="col-sm-4 ms-2 d-flex justify-content-start">
-                    -{{ pageText.opt_dates.months }}
-                </div>
             </div>
         </div>
         <!--  -->

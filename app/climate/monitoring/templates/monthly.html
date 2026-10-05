@@ -31,9 +31,15 @@
             <div class="row justify-content-center">
                 <div class="col-sm-6">
                     {{ fmacros.create_card_charts("div-chart-raw", pageText) }}
+                    {% call fmacros.create_modal_expand_charts("div-chart-raw", pageText) %}
+                    {{ fmacrosExp.create_expand_charts_raw("monthly", pageText, urlArgs) }}
+                    {% endcall %}
                 </div>
                 <div class="col-sm-6">
                     {{ fmacros.create_card_charts("div-chart-anom", pageText) }}
+                    {% call fmacros.create_modal_expand_charts("div-chart-anom", pageText) %}
+                    {{ fmacrosExp.create_expand_charts_anom("monthly", pageText, fmacros, urlArgs) }}
+                    {% endcall %}
                 </div>
             </div>
         </div>

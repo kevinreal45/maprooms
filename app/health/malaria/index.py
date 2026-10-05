@@ -2,16 +2,16 @@ from flask import Blueprint, render_template, request, session
 from flask import current_app as app
 import config
 
-health = Blueprint(
-    'health',
+health_malaria = Blueprint(
+    'health_malaria',
     __name__,
     template_folder='templates',
     static_folder='static',
-    static_url_path='/static/health',
+    static_url_path='/static/health_malaria',
 )
 
 dataUser = dict()
-@health.before_request
+@health_malaria.before_request
 def before_request():
     global dataUser
     if 'logged_in' not in session:

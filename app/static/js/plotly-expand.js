@@ -6,7 +6,13 @@ function expand_analysis_query_rawdata(tempRes) {
 
     query.temporalRes = tempRes;
     query.dataset = DATA_SET.use;
-    query.variable = $(`#${tempRes}-chart-raw-variable`).val();
+    // query.variable = $(`#${tempRes}-chart-raw-variable`).val();
+    query.chart_variable = $(`#${tempRes}-chart-raw-variable`).val();
+    if (URL_ARGS.component === 'monitoring') {
+        query.variable = DATA_SET.variables[query.chart_variable][0];
+    } else {
+        query.variable = query.chart_variable;
+    }
     query.startDate = analysis_query_format_date(
         $(`#${tempRes}-chart-raw-startdate-calendar`).val(),
         tempRes
@@ -15,6 +21,12 @@ function expand_analysis_query_rawdata(tempRes) {
         $(`#${tempRes}-chart-raw-enddate-calendar`).val(),
         tempRes
     );
+
+    if (tempRes === 'seasonal') {
+        query.seasStart = parseInt($(`#${tempRes}-chart-season-startmon-calendar`).val(), 10);
+        query.seasLength = parseInt($(`#${tempRes}-chart-season-seaslen`).val(), 10);
+        query.fullYearTS = false;
+    }
 
     return Object.assign({}, query);
 }
@@ -76,10 +88,20 @@ function expand_analysis_display_rawdata(json_input, container) {
     if (json.chartType === 'one') {
         showRangeselector(container, true);
 
-        const var_precip = json.info.var.type === 'precip';
+
+        const plotType = $(`#${json.info.time_res}-chart-raw-plot-type`).val() || 'bar';
+        const isBar = plotType === 'bar';
+        const showMarkers = plotType === 'lpoint';
+        const traceStyle = isBar ? { marker: { color: '#fc03fc' } } : {
+            line: { color: '#17becf' },
+            ...(showMarkers ? { marker: { color: '#fc03fc' } } : {})
+        };
 
         const xaxisHoverText = json.time.map((t) => {
-            return formatPlotlyHoverDate(t, json.info.time_res);
+            return formatPlotlyHoverDate(
+                t, json.info.time_res,
+                json.info.seas_len
+            );
         });
 
         const data = [{
@@ -87,10 +109,9 @@ function expand_analysis_display_rawdata(json_input, container) {
             y: json.values,
             name: json.info.var.name,
             units: json.info.var.units,
-            type: var_precip ? 'bar' : 'scatter',
-            mode: 'lines',
-            line: { color: '#17becf' },
-            marker: { color: '#fc03fc' },
+            type: isBar ? 'bar' : 'scatter',
+            ...(isBar ? {} : { mode: showMarkers ? 'lines+markers' : 'lines' }),
+            ...traceStyle,
             customdata: xaxisHoverText,
             hovertemplate: 'Date: %{customdata}<br> %{data.name}: %{y:.1f} %{data.units} <extra></extra>'
             // hovertemplate: 'Date: %{x|%B %Y}<br> %{data.name}: %{y:.1f} %{data.units} <extra></extra>'
@@ -99,8 +120,7 @@ function expand_analysis_display_rawdata(json_input, container) {
         var common_layout = {
             xaxis: {
                 type: 'date',
-                // tickformat: '%b %Y',
-                // dtick: 'M6',
+                tickformat: '%b %Y',
                 rangeslider: plotly_rangeslider,
             },
             yaxis: {
@@ -115,7 +135,7 @@ function expand_analysis_display_rawdata(json_input, container) {
             }
         };
 
-        if (var_precip) {
+        if (isBar) {
             var layout = {
                 // margin: { b: 50 },
                 xaxis: {
@@ -126,7 +146,7 @@ function expand_analysis_display_rawdata(json_input, container) {
                 yaxis: {
                     showgrid: true,
                     griddash: 'dot',
-                    tickfont: { color: '#fc03fc' }
+                    // tickfont: { color: '#fc03fc' }
                 },
                 shapes: [{
                     action: 'change-color',
@@ -157,7 +177,7 @@ function expand_analysis_display_rawdata(json_input, container) {
                     ticklen: 8,
                 },
                 yaxis: {
-                    tickfont: { color: '#17becf' },
+                    // tickfont: { color: '#17becf' },
                     showline: true,
                     showgrid: true,
                     gridwidth: 0.3,
@@ -169,7 +189,7 @@ function expand_analysis_display_rawdata(json_input, container) {
         layout = deepMerge(common_layout, layout);
         layout = deepMerge(setPlotlyColors(), layout);
 
-        if (var_precip) {
+        if (isBar) {
             layout.xaxis.rangeslider.bgcolor = data[0].marker.color;
         } else {
             layout.xaxis.rangeslider.bgcolor = data[0].line.color;
@@ -555,7 +575,13 @@ function expand_analysis_query_anomaly(tempRes) {
 
     query.temporalRes = tempRes;
     query.dataset = DATA_SET.use;
-    query.variable = $(`#${tempRes}-anom-variable`).val();
+    // query.variable = $(`#${tempRes}-anom-variable`).val();
+    query.chart_variable = $(`#${tempRes}-anom-variable`).val();
+    if (URL_ARGS.component === 'monitoring') {
+        query.variable = DATA_SET.variables[query.chart_variable][0];
+    } else {
+        query.variable = query.chart_variable;
+    }
     query.anomaly = $(`#${tempRes}-chart-anom-type`).val();
 
     query.startYear = parseInt($(`#${tempRes}-chart-anom-bp-start`).val().trim(), 10);
@@ -658,6 +684,53 @@ function expand_analysis_format_anomaly(json) {
     return jsc;
 }
 
+
+function getAnomalyBarWidthMs(time, timeRes, info) {
+    const date = new Date(time);
+    if (timeRes === 'seasonal') {
+        const seasLen = Number(info.seas_len);
+        if (Number.isFinite(seasLen) && seasLen > 0) {
+            const { start, end } = getSeasonFromDate(date, seasLen);
+            return end.getTime() - start.getTime();
+        }
+        return null;
+    }
+    if (timeRes === 'daily' && info.seas_daily) {
+        const { start, end } = getDailySeasonRange(date, info.seas_daily);
+        return end.getTime() - start.getTime();
+    }
+    return null;
+}
+
+const ANOMALY_MIN_BAR_WIDTH_FRACTION_OF_RANGE = 0.012; // ~1.2% of the visible span
+const ANOMALY_MAX_BAR_WIDTH_FRACTION_OF_GAP = 0.8;
+const ANOMALY_MIN_BAR_WIDTH_MS_FLOOR = 5 * 86400000; // 5 days, for a single/near-empty range
+
+function applyMinimumAnomalyBarWidths(times, widths) {
+    const numericTimes = times.map(t => new Date(t).getTime());
+    const rangeSpan = numericTimes.length ?
+        Math.max(...numericTimes) - Math.min(...numericTimes) :
+        0;
+    const floor = Math.max(
+        rangeSpan * ANOMALY_MIN_BAR_WIDTH_FRACTION_OF_RANGE,
+        ANOMALY_MIN_BAR_WIDTH_MS_FLOOR
+    );
+
+    const sorted = [...numericTimes].sort((a, b) => a - b);
+    const sortedGaps = sorted
+        .slice(1)
+        .map((t, i) => t - sorted[i])
+        .filter(gap => gap > 0);
+    const ceiling = sortedGaps.length ?
+        Math.min(...sortedGaps) * ANOMALY_MAX_BAR_WIDTH_FRACTION_OF_GAP :
+        null;
+
+    return widths.map(width => {
+        const withFloor = Math.max(width, floor);
+        return ceiling !== null ? Math.min(withFloor, ceiling) : withFloor;
+    });
+}
+
 function expand_analysis_display_anomaly(json_input, container) {
     const divCont = $(`#${container}`);
     divCont.empty();
@@ -698,12 +771,19 @@ function expand_analysis_display_anomaly(json_input, container) {
         }
     });
 
+
+    const barWidths = json.time.map(
+        t => getAnomalyBarWidthMs(t, json.info.time_res, json.info)
+    );
+    const hasCustomBarWidths = barWidths.every(w => Number.isFinite(w) && w > 0);
+
     const data = [{
         x: json.time,
         y: json.values,
         name: json.info.var.name,
         units: json.info.var.units,
         type: 'bar',
+        ...(hasCustomBarWidths ? { width: applyMinimumAnomalyBarWidths(json.time, barWidths) } : {}),
         marker: {
             color: barColors,
             line: {
@@ -1401,6 +1481,10 @@ function expand_analysis_query_enso(tempRes) {
         // not used
         query.sstProd = $(`#${tempRes}-nao-cdas`).val();
     }
+    if (query.teleconIndex === 'atl3') {
+        // not used
+        query.sstProd = $(`#${tempRes}-atl3-cdas`).val();
+    }
     if (query.teleconIndex === 'anom') {
         query.timeRes = $(`#${tempRes}-anom-tempres`).val();
 
@@ -1413,7 +1497,7 @@ function expand_analysis_query_enso(tempRes) {
         query.ninoRegion = $(`#${tempRes}-anom-ninoregion`).val();
     }
 
-    if (['oni', 'iod', 'nao', 'anom'].includes(query.teleconIndex)) {
+    if (['oni', 'iod', 'nao', 'atl3', 'anom'].includes(query.teleconIndex)) {
         query.startDate = $(`#${tempRes}-chart-enso-startdate-calendar`).val();
         query.endDate = $(`#${tempRes}-chart-enso-enddate-calendar`).val();
         const ensoImg = $(`#${tempRes}-disp-image-enso`).val();
@@ -1441,7 +1525,7 @@ function expand_analysis_charts_enso(container_id, tempRes) {
     // between line or bar plot
     let storename = null;
     // if (!query.imgPNG) {
-    //     if (['oni', 'iod', 'nao', 'anom'].includes(query.teleconIndex)) {
+    //     if (['oni', 'iod', 'nao', 'atl3', 'anom'].includes(query.teleconIndex)) {
     //         storename = 'ts_enso';
     //     }
     // }
@@ -1471,7 +1555,9 @@ function expand_analysis_display_enso(json, container) {
             'object-fit': 'cover'
         });
         showRangeselector(container, false);
+        toggleChartSettingsButton(container, false);
     } else {
+        toggleChartSettingsButton(container, true);
         let xaxisHoverText;
         if (json.time_res === 'seasonal-enso') {
             xaxisHoverText = json.time.map((t) => {
@@ -1505,12 +1591,9 @@ function expand_analysis_display_enso(json, container) {
         const xmin = addDateMonths(new Date(Math.min(...x)), -xlim);
         const xmax = addDateMonths(new Date(Math.max(...x)), xlim);
 
-        //
-        const pwidth = Math.floor(screen.width * 0.7672);
-        // const pheight = Math.floor(screen.height * 0.49389);
-        //// .modal-expand-charts-plotly (height: 60vh)
-        //// const pheight = Math.floor(window.innerHeight * 0.6);
-        const pheight = Math.floor(window.innerHeight * 0.585);
+
+        const pwidth = getChartWidth(container);
+        const pheight = getChartHeight(container);
 
         // 
         const data = [{
@@ -1551,6 +1634,7 @@ function expand_analysis_display_enso(json, container) {
                 type: 'date',
                 range: [xmin, xmax],
                 rangeslider: enso_rangeslider,
+                automargin: true,
                 showgrid: true,
                 ticks: 'outside',
                 ticklen: 6,
@@ -1654,6 +1738,8 @@ function expand_analysis_display_enso(json, container) {
             enso_config
         );
 
+        resizePlotlyChart(container);
+
         //// add range selector
         const last_date = new Date(json.time[json.time.length - 1]);
         const ranges = ['1Y', '5Y', '10Y', '15Y', '20Y', '30Y', 'ALL'];
@@ -1734,11 +1820,13 @@ function expand_telecon_display_tseries(json, container) {
             marker: {
                 color: barColors
             },
+
+            customdata: json.classes,
             width: 0.7,
             hovertemplate: `%{data.name}: %{y:.2f} %{data.units} <extra></extra>`,
             showlegend: false
         },
-        // Legend only: classes
+
         ...Object.entries(json.info.classes).map(([key, name]) => ({
             x: [null],
             y: [null],
@@ -1747,6 +1835,7 @@ function expand_telecon_display_tseries(json, container) {
             marker: {
                 color: barcol[Number(key)]
             },
+            meta: { categoryKey: key },
             showlegend: true
         })),
         {
@@ -1936,7 +2025,8 @@ function expand_telecon_display_proba(json, container) {
     };
 
     layout = deepMerge(setPlotlyColors(), layout);
-    layout = deepMerge(preview_layout, layout);
+
+    layout = deepMerge(expand_layout, layout);
     layout.print_legend = 'telecon';
     layout.chart_type = 'telecon-proba';
 
@@ -2039,6 +2129,18 @@ function expand_agri_rseason_display_series(json, container) {
     const yticktext = formatTickTextRainySeason(
         json.yticks, json.start[0], json.info.var
     );
+
+
+    const isDateVariable = ['onset', 'cessation'].includes(json.info.var.type);
+    let formatY = value => value;
+    if (isDateVariable) {
+        const start = json.start.find(value => value !== null);
+        if (start !== undefined) {
+            const [year, month, day] = start.split('-').map(Number);
+            const startTime = Date.UTC(year, month - 1, day);
+            formatY = value => new Date(startTime + value * 86400000);
+        }
+    }
 
     const xaxisHoverText = xdata.map((x) => {
         return formatPlotlyHoverDateRainySeason(
@@ -2213,6 +2315,13 @@ function expand_agri_rseason_display_series(json, container) {
             traces.push(...makeReferenceTraces());
         }
 
+
+        traces.forEach(trace => {
+            if (Array.isArray(trace.y)) {
+                trace.y = trace.y.map(formatY);
+            }
+        });
+
         var layout = {
             xaxis: {
                 range: xlim,
@@ -2226,8 +2335,8 @@ function expand_agri_rseason_display_series(json, container) {
                 griddash: 'dot'
             },
             yaxis: {
-                range: ylim,
-                tickvals: yticks,
+                range: ylim.map(formatY),
+                tickvals: yticks.map(formatY),
                 ticktext: yticktext,
                 ticks: 'outside',
                 ticklen: 8,
@@ -2247,7 +2356,8 @@ function expand_agri_rseason_display_series(json, container) {
             height: getChartHeight(container)
         };
 
-        layout.margin = { t: 10, b: 60, l: 80, r: 10 };
+
+        layout.margin = { t: 10, b: 85, l: 80, r: 10 };
         layout.print_legend = 'rainy_season';
         layout = deepMerge(setPlotlyColors(), layout);
         layout = deepMerge(expand_layout, layout);
@@ -2685,4 +2795,220 @@ function expand_agri_cropsuit_display(json, container) {
 
     setPlotlyThemeColors(container);
     resizePlotlyChart(container);
+}
+
+///////
+
+function expand_analysis_query_cumul(tempRes) {
+    let query = queryParamsSpatialAverage();
+    if (!query) {
+        return query;
+    }
+
+    query.temporalRes = tempRes;
+    query.dataset = DATA_SET.use;
+
+    query.chart_variable = $(`#${tempRes}-chart-cumul-variable`).val();
+    query.variable = DATA_SET.variables[query.chart_variable][0];
+
+    const start_date = $(`#${tempRes}-chart-cumul-startdate-calendar`).val();
+    const end_date = $(`#${tempRes}-chart-cumul-enddate-calendar`).val();
+    if (!checkDatesCumul(start_date, end_date)) {
+        return false;
+    }
+    query.startDate = analysis_query_format_date(
+        start_date, tempRes
+    );
+    query.endDate = analysis_query_format_date(
+        end_date, tempRes
+    );
+
+    query.startYear = parseInt($(`#${tempRes}-chart-cumul-bp-start`).val().trim(), 10);
+    query.endYear = parseInt($(`#${tempRes}-chart-cumul-bp-end`).val().trim(), 10);
+    query.minYear = parseInt($(`#${tempRes}-chart-cumul-bp-min`).val().trim(), 10);
+
+    return query;
+}
+
+function expand_analysis_charts_cumul(container_id, tempRes) {
+    const query = expand_analysis_query_cumul(tempRes);
+    if (!query) {
+        return false;
+    }
+    if (checkQueryPointOutside(query, tempRes)) {
+        return false;
+    }
+
+    ajaxDisplayChart(
+        '/climate_monitoring_cumul',
+        query,
+        expand_analysis_display_cumul,
+        container_id
+    );
+}
+
+function expand_analysis_display_cumul(json, container) {
+    const divCont = $(`#${container}`);
+    divCont.empty();
+    const theme = $('html').attr('data-bs-theme');
+
+    const percentileLegend = {
+        x: [null],
+        y: [null],
+        type: 'scatter',
+        mode: 'markers',
+
+        marker: {
+            color: 'gray',
+            size: 12,
+            symbol: 'square'
+        },
+
+        name: '5th–95th Percentile',
+        hoverinfo: 'skip'
+    };
+
+    const shapes = [];
+    for (let j = 0; j < json.time.length - 1; j++) {
+        shapes.push({
+            type: 'rect',
+
+            xref: 'x',
+            yref: 'y',
+
+            x0: json.time[j],
+            x1: json.time[j + 1],
+
+            y0: json.values[2][j],
+            y1: json.values[3][j],
+
+            fillcolor: 'gray',
+            line: {
+                color: 'gray',
+                width: 1
+            },
+
+            layer: 'below'
+        });
+    }
+
+    const data = [
+        percentileLegend,
+        {
+            x: json.time,
+            y: json.values[0],
+            name: 'Cumulative Rainfall',
+            units: 'mm',
+            type: 'scatter',
+            mode: 'lines',
+            line: {
+                color: 'red',
+                width: 4
+            },
+            hovertemplate: '%{data.name}: %{y:.1f} %{data.units} <extra></extra>'
+        },
+        {
+            x: json.time,
+            y: json.values[1],
+            name: 'Climatological Mean',
+            units: 'mm',
+            type: 'scatter',
+            mode: 'lines',
+            line: {
+                color: 'blue',
+                width: 4
+            },
+            hovertemplate: '%{data.name}: %{y:.1f} %{data.units} <extra></extra>'
+        },
+        {
+            x: json.time,
+            y: json.values[2],
+            name: '5th Percentile',
+            showlegend: false,
+            units: 'mm',
+            type: 'scatter',
+            mode: 'lines',
+            line: {
+                shape: 'hv',
+                color: 'gray',
+                width: 4
+            },
+            hovertemplate: '%{data.name}: %{y:.1f} %{data.units} <extra></extra>'
+        },
+        {
+            x: json.time,
+            y: json.values[3],
+            name: '95th Percentile',
+            showlegend: false,
+            units: 'mm',
+            type: 'scatter',
+            mode: 'lines',
+            line: {
+                shape: 'hv',
+                color: 'gray',
+                width: 4
+            },
+            hovertemplate: '%{data.name}: %{y:.1f} %{data.units} <extra></extra>'
+        }
+    ];
+
+    let layout = {
+        xaxis: {
+            type: 'date',
+            showgrid: true,
+            gridwidth: 0.5,
+            griddash: 'dot',
+            gridcolor: 'lightgray',
+            showline: true,
+            linecolor: plotly_themecolors[theme].fontcolor,
+            unifiedhovertitle: {
+                text: 'Dekad: %{x|%d %b %Y}'
+            },
+            ticks: 'outside',
+            ticklen: 8
+        },
+        yaxis: {
+            range: json.yrange,
+            tickvals: json.yticks,
+            showgrid: true,
+            gridwidth: 0.5,
+            griddash: 'dot',
+            gridcolor: 'lightgray',
+            showline: true,
+            linecolor: plotly_themecolors[theme].fontcolor,
+            ticks: 'outside',
+            ticklen: 8,
+            title: {
+                text: `${json.info.var.name} [${json.info.var.units}]`,
+            },
+        },
+        shapes: shapes,
+        showlegend: true,
+        hovermode: 'x unified',
+        hoverlabel: hoverlabelColors(theme)
+    };
+
+    layout.margin = { t: 10, b: 60, l: 60, r: 10 };
+    layout = deepMerge(setPlotlyColors(), layout);
+    layout = deepMerge(preview_layout, layout);
+
+    const config = {
+        displayModeBar: false,
+        responsive: true
+    };
+
+    purgePlotlyChart(container);
+    Plotly.newPlot(container, data, layout, config);
+    setPlotlyThemeColors(container);
+
+    $('#btn-theme-toggle').on('click', () => {
+        const thm = $('html').attr('data-bs-theme');
+        const update = {
+            'xaxis.linecolor': plotly_themecolors[thm].fontcolor,
+            'yaxis.linecolor': plotly_themecolors[thm].fontcolor,
+            'hoverlabel.font.color': plotly_themecolors[thm].fontcolor,
+            'hoverlabel.bgcolor': plotly_themecolors[thm].bgcolor
+        };
+        Plotly.relayout(container, update);
+    });
 }

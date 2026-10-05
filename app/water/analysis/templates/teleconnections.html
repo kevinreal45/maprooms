@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+{% block title %} {{metInfo.pageTitle}} {% endblock %}
+{% block head %}
+{{ super() }}
+<!-- <style> </style> -->
+{% endblock %}
+{% block content %}
+<!--  -->
+<div class="container-fluid" id="container-page">
+    {# {{ fmacros.tmp_placeholder_image(urlArgs) }} #}
+    <!--  -->
+    <div class="row">
+        <div class="col-sm-4">
+            {{ fmacros.create_card_information(pageText.description, pageText.instruction) }}
+        </div>
+        <div class="col-sm-8">
+            <div class="row">
+                <div class="col-sm-12 col-map-container">
+                    <div id="div-map-container" class="div-map-container">
+                        {% call fmacros.create_map_control(pageText, urlArgs) %}
+                        {{ fmacrosMap.create_map_control_telecon_sp("seasonal", pageText) }}
+                        {% endcall %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-sm-4">
+            {{ fmacros.create_card_charts("div-chart-enso", pageText) }}
+            {% call fmacros.create_modal_expand_charts("div-chart-enso", pageText) %}
+            {{ fmacrosExp.create_expand_charts_enso("seasonal", pageText) }}
+            {% endcall %}
+        </div>
+        <div class="col-sm-4">
+            {{ fmacros.create_card_charts("div-chart-tseries", pageText) }}
+            {% call fmacros.create_modal_expand_charts("div-chart-tseries", pageText) %}
+            {{ fmacrosExp.create_expand_charts_telecon("seasonal", pageText, "tseries") }}
+            {% endcall %}
+        </div>
+        <div class="col-sm-4">
+            {{ fmacros.create_card_charts("div-chart-proba", pageText) }}
+            {% call fmacros.create_modal_expand_charts("div-chart-proba", pageText) %}
+            {{ fmacrosExp.create_expand_charts_telecon("seasonal", pageText, "proba") }}
+            {% endcall %}
+        </div>
+    </div>
+    {{ fmacros.create_modal_matplotlib(pageText) }}
+</div>
+{% endblock %}
+{% block javascript %}
+{% include "block-js.html" %}
+<script>
+const DATA_SET = JSON.parse('{{ pageText.dataset | tojson }}');
+let DATA_ENSO = JSON.parse('{{ pageText.dataset_enso | tojson }}');
+const ANOM_ENSO = JSON.parse('{{ pageText.opt_anom_nino_type.select | tojson }}');
+const REGION_ENSO = JSON.parse('{{ pageText.opt_anom_nino_region.select | tojson }}');
+const CLIMATE_VAR = JSON.parse('{{ pageText.clim_variables | tojson }}');
+const TERCILES_VAR = JSON.parse('{{ pageText.opt_variables_analysis | tojson }}');
+</script>
+<script type="text/javascript" src="{{ url_for('climate_analysis.static', filename='js/teleconnections.js') }}"></script>
+{% endblock %}

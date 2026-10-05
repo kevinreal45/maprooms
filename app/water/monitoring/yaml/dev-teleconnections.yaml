@@ -15,7 +15,7 @@ description:
         </p>
 
 dataset:
-    use: ALL
+    use: MON
     variables:
         rainfall: [precip]
         temperature: [tmin, tmax]

@@ -1,71 +1,36 @@
 title: 
-    en: Malaria Historical Analysis
-    fr: Analyse Historique de la Malaria
-
-# description with HTML tags must put inside single quotes (ex: '....')
-# if there are a literal (') inside the single-quoted description, you need to repeat it ('')
-# or use a block scalar (|), when using a block scalar there is no need to double a literal ('')
-# wrap inside a <p> the description for the right cards, the text in the navigation card is the 1st <p> in description
-
+    en: Climate and Health
+    fr: Climat et Santé
 description: 
     en: |
-        <p>Climate variables may effect malaria transmission in certain regions.
-        These products aid to determine the historical risk for malaria due to climatic factors.</p>
         <p>
-        The maps and charts in this section may aid in forecasting malaria epidemics by helping
-        the user understand the climate risk of their region by:
+        The <strong>Climate and Health Maproom</strong> enable users to analyze historical climate data, current conditions, and future climate forecasts and projections to better understand and manage climate-sensitive health risks. 
         </p>
-        <ul>
-        <li>Showing the suitability of malaria transmission based on historical climate records.</li>
-        <li>Comparing current climatic conditions to climatic conditions during a past outbreak.</li></ul>
         <p>
-        Studies show that three climatic variables are related to malaria outbreaks. 
-        These variables and the range that may increase the risk for malaria transmission are listed below.
-        <ul>
-        <li><b>Temperature:</b> Average temperature between 18°C and 32°C</li>
-        <li><b>Precipitation:</b> Average precipitation is greater than 80mm</li>
-        <li><b>Humidity:</b> Average relative humidity is greater than 60%</li>
-        </ul>
+        This Maproom supports the monitoring and prediction of climate conditions that influence the occurrence and spread of climate-sensitive diseases. Empirically derived thresholds of precipitation, temperature and relative humidity are used to assess the climatic suitability of malaria transmission.
         </p>
-        <p><b>References:</b></p>
-        <p> Ceccato P., Connor S. J., Jeanne I., Thomson M.C.
-        <b> <a href="https://www.isse.ucar.edu/climatehealth/doc/Publications.Pg/Pubs.Ceccato.GIS.Remote.Sensing.pdf" shape="rect">
-        Application of Geographical Information Systems and Remote Sensing technologies for assessing and monitoring malaria risk</a></b>.
-        <i>Parassitologia </i>.47.1 (2005), 81-96.
+        <p>
+        While the current Maproom focuses primarily on malaria and historical climate information, it is designed to evolve into a more comprehensive platform that supports a broader range of climate-sensitive diseases and health outcomes.
         </p>
-    fr: '<p>Les variations climatiques peuvent affecter la transmission de la malaria dans certaines régions.
-        Ces produits aident à déterminer le risque historique de malaria dû à des facteurs climatiques.</p>'
-type: navigation-page
+        <p>
+        Future enhancements are expected to incorporate near-real-time climate monitoring, seasonal forecasts, and longer-term climate projections, enabling more proactive health risk assessment and early warning. 
+        </p>
+    fr: |
+        <p>
+        La <strong>Maproom Climat et Santé</strong> permet aux utilisateurs d’analyser les données climatiques historiques, les conditions actuelles ainsi que les prévisions et projections climatiques futures afin de mieux comprendre et gérer les risques sanitaires liés au climat.
+        </p>
+        <p>
+        Cette Maproom facilite le suivi et la prévision des conditions climatiques qui influencent l’apparition et la propagation des maladies sensibles au climat. Des seuils de précipitations, de température et d’humidité relative déterminés de manière empirique sont utilisés pour évaluer si les conditions climatiques sont favorables à la transmission du paludisme.
+        </p>
+        <p>
+        Bien que la Maproom actuelle porte principalement sur le paludisme et les informations climatiques historiques, elle est conçue pour évoluer vers une plateforme plus complète couvrant un éventail plus large de maladies sensibles au climat et d’effets sur la santé.
+        </p>
+        <p>
+        Les améliorations futures devraient intégrer le suivi climatique en temps quasi réel, les prévisions saisonnières et les projections climatiques à plus long terme, afin de permettre une évaluation plus proactive des risques sanitaires et la mise en place de systèmes d’alerte précoce.
+        </p>
+type: navigation-card
 # icon_image from /app/static/images/card_icons
 icon_image: default-emi_health.png
 
-## - cmst: name of the html file under templates (ex: cmst.html)
-## and name of the yaml file under yaml folder (ex: cmst.yaml)
-maprooms:
-    - cmst:
-        title:
-            en: Seasonal Climatic Suitability for Malaria Transmission
-            fr: Conditions Climatiques Saisonnières Propices à la Transmission de la Malaria
-        description:
-            en: This map shows the number of months suitable for malaria transmission, based on climatological averages. Suitability is defined as the coincidence of precipitation accumulation greater than 80 mm, mean temperature between 18°C and 32°C, and relative humidity greater than 60%.
-            fr: Cette carte présente le nombre de mois propices à la transmission de la malaria, par rapport à des moyennes climatologiques. Des conditions propices correspondent à une période où coincident des cumuls de précipitations supérieurs à 80 mm, des températures moyennes comprises entre 18°C et 32°C, et un taux d'humidité relative supérieur à 60%.
-        # icon_image from /app/health/static/images
-        icon_image: default-emi_malaria.gif
-    - ndvi:
-        title:
-            en: Measures of Vegetation
-            fr: Mesures de la Végétation
-        description:
-            en: This tool produces maps of estimated vegetation using data from NASA's MODIS sensor.
-            fr: Cette outil produit des cartes de végétation en utilisant les données MODIS de la NASA.
-        # icon_image from /app/health/static/images
-        icon_image: default-emi_ndvi.png
-    - wasp:
-        title:
-            en: Country-Average WASP Index
-            fr: Moyenne Administrative de l'Indice WASP à Madagascar
-        description:
-            en: This plot shows the time series of 12-month Weighted Anomaly Standardization Precipitation (WASP) index relative to a baseline period. The purpose of this tool is to provide a simple visual means of relating averaged precipitation to a reference period of interest.
-            fr: Ce graphique montre une série temporelle de 12 mois de l'index des Anomalies Pondérées des Précipitations Standardisées comparées à une période de référence. L'objectif de cet outil est de fournir un moyen simple pour visualiser les précipitations moyennes par rapport à une période de référence.
-        # icon_image from /app/health/static/images
-        icon_image: default-emi_wasp.gif
+components:
+    - malaria

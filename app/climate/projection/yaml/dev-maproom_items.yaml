@@ -2,8 +2,26 @@ title:
     en: Climate Projection
     fr: Projection Climatique
 description: 
-    en: Future changes in seasonal climate with reference to a historical climatological period. Climatological period is user defined and is same in both historical and future periods. Future projections are based on the representative concentration pathways (RCPs).
-    fr: Future changes in seasonal climate with reference to a historical climatological period. Climatological period is user defined and is same in both historical and future periods. Future projections are based on the representative concentration pathways (RCPs).
+    en: |
+        <p>
+        This Maproom presents projected changes in key climate variables, mainly rainfall and temperature, enabling users to assess how climate conditions may evolve over coming decades. 
+        </p>
+        <p>
+        Future projections are derived from global climate model outputs under different Representative Concentration Pathways (RCPs). A key strength of the Maproom is its ability to present climate projections alongside the historical ENACTS dataset, allowing users to directly compare projected conditions with observed historical climate. 
+        </p>
+        <p>
+        This comparison helps users place projected changes within a familiar historical context and better assess the magnitude and uncertainty of future climate projections.
+        </p>
+    fr: |
+        <p>
+        Cette Maproom présente les changements projetés des principales variables climatiques, notamment les précipitations et les températures, permettant ainsi aux utilisateurs d’évaluer la manière dont les conditions climatiques pourraient évoluer au cours des prochaines décennies.
+        </p>
+        <p>
+        Les projections futures sont établies à partir des résultats de modèles climatiques mondiaux selon différents profils représentatifs d’évolution des concentrations (RCPs). L’un des principaux atouts de la Maproom réside dans sa capacité à présenter les projections climatiques parallèlement au jeu de données historiques ENACTS. Les utilisateurs peuvent ainsi comparer directement les conditions projetées aux conditions climatiques observées par le passé.
+        </p>
+        <p>
+        Cette comparaison permet de replacer les changements projetés dans un contexte historique familier et de mieux évaluer l’ampleur ainsi que le degré d’incertitude des projections climatiques futures.
+        </p>
 type: navigation-page
 # icon_function defined in /app/climate/projection/scripts/icons.py
 # icon_function: icon_climate_projection

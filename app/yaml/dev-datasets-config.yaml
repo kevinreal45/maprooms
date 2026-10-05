@@ -261,6 +261,9 @@ datasets:
     MON:
         variables:
             rainfall: precip
+            maximum_temperature: tmax
+            minimum_temperature: tmin
+            reference_evapotranspiration: et0
         daily:
             netcdf:
                 precip: 
@@ -275,6 +278,48 @@ datasets:
                     units: mm
                     missval: -99
                     compute: False
+                tmax: 
+                    dir: /home/enacts/ENACTS_DATA/DATA/NETCDF/MON/tmax_daily
+                    format: tmax_mrg_%Y%m%d_ALL.nc
+                    name: Daily maximum temperature
+                    varid: temp
+                    lon: Lon
+                    lat: Lat
+                    time: Time
+                    prec: float
+                    units: °C
+                    missval: -99
+                    compute: False
+                tmin: 
+                    dir: /home/enacts/ENACTS_DATA/DATA/NETCDF/MON/tmin_daily
+                    format: tmin_mrg_%Y%m%d_ALL.nc
+                    name: Daily minimum temperature
+                    varid: temp
+                    lon: Lon
+                    lat: Lat
+                    time: Time
+                    prec: float
+                    units: °C
+                    missval: -99
+                    compute: False
+                et0: 
+                    name: Daily reference evapotranspiration 
+                    varid: et0
+                    lon: lon
+                    lat: lat
+                    time: time
+                    prec: float
+                    units: mm
+                    missval: -99
+                    compute: True
+                    data_type: et0
+                    function: et0_hargreaves_modified
+                    input_data: [tmax, tmin, precip]
+                    # input_data: [tmax, tmin]
+                    # function: et0_hargreaves_fao
+                    input: daily
+                    write_zarr: True
+                    dir_zarr: et0_daily
             zarr_dir: /home/enacts/ENACTS_DATA/DATA/ZARR/MON
             chunks:
                 time: 1000
@@ -294,6 +339,43 @@ datasets:
                     units: mm
                     missval: -99
                     compute: False
+                tmax: 
+                    dir: /home/enacts/ENACTS_DATA/DATA/NETCDF/MON/tmax_dekad
+                    format: tmax_mrg_%Y%m%d_ALL.nc
+                    name: Dekadal maximum temperature
+                    varid: temp
+                    lon: Lon
+                    lat: Lat
+                    time: Time
+                    prec: float
+                    units: °C
+                    missval: -99
+                    compute: False
+                tmin: 
+                    dir: /home/enacts/ENACTS_DATA/DATA/NETCDF/MON/tmin_dekad
+                    format: tmin_mrg_%Y%m%d_ALL.nc
+                    name: Dekadal minimum temperature
+                    varid: temp
+                    lon: Lon
+                    lat: Lat
+                    time: Time
+                    prec: float
+                    units: °C
+                    missval: -99
+                    compute: False
+                et0:
+                    name: Dekadal reference evapotranspiration
+                    varid: et0
+                    lon: lon
+                    lat: lat
+                    time: time
+                    prec: float
+                    units: mm
+                    missval: -99
+                    compute: True
+                    function: sum
+                    input: daily
+                    minfrac: 1
             zarr_dir: /home/enacts/ENACTS_DATA/DATA/ZARR/MON
             chunks:
                 time: 1000
@@ -314,6 +396,45 @@ datasets:
                     function: sum
                     input: dekadal
                     minfrac: 1
+                tmax: 
+                    name: Monthly maximum temperature
+                    varid: tmax
+                    lon: Lon
+                    lat: Lat
+                    time: Time
+                    prec: float
+                    units: °C
+                    missval: -99
+                    compute: True
+                    function: mean
+                    input: dekadal
+                    minfrac: 1
+                tmin: 
+                    name: Monthly minimum temperature
+                    varid: tmin
+                    lon: Lon
+                    lat: Lat
+                    time: Time
+                    prec: float
+                    units: °C
+                    missval: -99
+                    compute: True
+                    function: mean
+                    input: dekadal
+                    minfrac: 1
+                et0:
+                    name: Monthly reference evapotranspiration
+                    varid: et0
+                    lon: lon
+                    lat: lat
+                    time: time
+                    prec: float
+                    units: mm
+                    missval: -99
+                    compute: True
+                    function: sum
+                    input: daily
+                    minfrac: 1
         seasonal:
             netcdf:
                 precip: 
@@ -329,6 +450,32 @@ datasets:
                     function: sum
                     input: dekadal
                     minfrac: 1
+                tmax: 
+                    name: Seasonal maximum temperature
+                    varid: tmax
+                    lon: Lon
+                    lat: Lat
+                    time: Time
+                    prec: float
+                    units: °C
+                    missval: -99
+                    compute: True
+                    function: mean
+                    input: dekadal
+                    minfrac: 1
+                tmin: 
+                    name: Seasonal minimum temperature
+                    varid: tmin
+                    lon: Lon
+                    lat: Lat
+                    time: Time
+                    prec: float
+                    units: °C
+                    missval: -99
+                    compute: True
+                    function: mean
+                    input: dekadal
+                    minfrac: 1
         annual:
             netcdf:
                 precip: 
@@ -342,6 +489,32 @@ datasets:
                     missval: -99
                     compute: True
                     function: sum
+                    input: dekadal
+                    minfrac: 1
+                tmax: 
+                    name: Annual maximum temperature
+                    varid: tmax
+                    lon: Lon
+                    lat: Lat
+                    time: Time
+                    prec: float
+                    units: °C
+                    missval: -99
+                    compute: True
+                    function: mean
+                    input: dekadal
+                    minfrac: 1
+                tmin: 
+                    name: Annual minimum temperature
+                    varid: tmin
+                    lon: Lon
+                    lat: Lat
+                    time: Time
+                    prec: float
+                    units: °C
+                    missval: -99
+                    compute: True
+                    function: mean
                     input: dekadal
                     minfrac: 1
 climatology:
