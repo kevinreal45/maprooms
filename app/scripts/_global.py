@@ -156,7 +156,9 @@ def set_navbar_path(maproom=None, component=None, page=None, item_type='director
     return nav_path
 
 def selected_language(lang_code):
-    GLOBAL_CONFIG['language']['code'] = lang_code
     maproom_lang = GLOBAL_CONFIG['language']['list']
+    if lang_code not in [language['code'] for language in maproom_lang]:
+        lang_code = maproom_lang[0]['code']
+    GLOBAL_CONFIG['language']['code'] = lang_code
     selected_lang = [l for l in maproom_lang if l['code'] == lang_code]
     GLOBAL_CONFIG['language']['selected'] = selected_lang[0]
