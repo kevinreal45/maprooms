@@ -12,7 +12,7 @@
 .div-map-control {
     top: 0px;
     right: 0px;
-    z-index: 500 !important;
+    z-index: 1045 !important;
 }
 
 .btns-map-control {
@@ -61,7 +61,7 @@
 
 .offcanvas-start,
 .offcanvas-end {
-    --bs-offcanvas-width: 32%;
+    --bs-offcanvas-width: min(32rem, 100vw);
 }
 
 /*----*/
