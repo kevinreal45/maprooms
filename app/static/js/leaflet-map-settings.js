@@ -894,13 +894,36 @@ function queryParamsClimateProjectionSeasonalMap() {
         scenario: $(`#${prefix}-scenario`).val(),
         seasStart: Number($(`#${prefix}-start-month`).val()),
         seasEnd: Number($(`#${prefix}-end-month`).val()),
-        yearstartH: Number(
-            $(`#${prefix}-historical-date-calendar`).val()
-        ),
-        yearstartFut: Number(
-            $(`#${prefix}-future-date-calendar`).val()
-        ),
-        climPeriod: Number($(`#${prefix}-period-length`).val())
+        yearstartH: Number($(`#${prefix}-historical-start`).val()),
+        yearendH: Number($(`#${prefix}-historical-end`).val()),
+        yearstartFut: Number($(`#${prefix}-future-start`).val()),
+        yearendFut: Number($(`#${prefix}-future-end`).val()),
+
+    };
+
+    const validYears = [
+        query.yearstartH,
+        query.yearendH,
+        query.yearstartFut,
+        query.yearendFut
+    ].every(value => (
+        Number.isInteger(value) &&
+        value >= 1 &&
+        value <= 9998
+    ));
+
+    const crossesYear = Number(query.seasEnd < query.seasStart);
+
+    if (
+        !validYears ||
+        query.yearendH - query.yearstartH + 1 <= crossesYear ||
+        query.yearendFut - query.yearstartFut + 1 <= crossesYear
+    ) {
+        flashMessage(
+            'Enter valid historical and future periods.',
+            'error'
+        );
+        return false;
     };
 
     const valid = [
@@ -908,7 +931,7 @@ function queryParamsClimateProjectionSeasonalMap() {
         query.seasEnd,
         query.yearstartH,
         query.yearstartFut,
-        query.climPeriod
+        // query.climPeriod
     ].every(value => Number.isInteger(value) && value > 0);
 
     if (
@@ -966,24 +989,48 @@ function queryParamsClimateProjectionAgreementMap() {
         change: $(`#${prefix}-change-signal`).val(),
         seasStart: Number($(`#${prefix}-start-month`).val()),
         seasEnd: Number($(`#${prefix}-end-month`).val()),
-        yearstartFut: Number(
-            $(`#${prefix}-future-date-calendar`).val()
-        ),
-        climPeriod: Number($(`#${prefix}-period-length`).val())
+        yearstartH: Number($(`#${prefix}-historical-start`).val()),
+        yearendH: Number($(`#${prefix}-historical-end`).val()),
+        yearstartFut: Number($(`#${prefix}-future-start`).val()),
+        yearendFut: Number($(`#${prefix}-future-end`).val()),
     };
 
+    const validYears = [
+        query.yearstartH,
+        query.yearendH,
+        query.yearstartFut,
+        query.yearendFut
+    ].every(value => (
+        Number.isInteger(value) &&
+        value >= 1 &&
+        value <= 9998
+    ));
+
+    const crossesYear = Number(query.seasEnd < query.seasStart);
+
+    if (
+        !validYears ||
+        query.yearendH - query.yearstartH + 1 <= crossesYear ||
+        query.yearendFut - query.yearstartFut + 1 <= crossesYear
+    ) {
+        flashMessage(
+            'Enter valid historical and future periods.',
+            'error'
+        );
+        return false;
+    };
     const integers = [
         query.seasStart,
         query.seasEnd,
         query.yearstartFut,
-        query.climPeriod
+        // query.climPeriod
     ].every(value => Number.isInteger(value) && value > 0);
 
     if (
         !integers ||
         query.seasStart > 12 ||
         query.seasEnd > 12 ||
-        query.yearstartFut < 2015 ||
+        // query.yearstartFut < 2015 ||
         !query.variable ||
         !query.scenario ||
         !['positive', 'negative'].includes(query.change)

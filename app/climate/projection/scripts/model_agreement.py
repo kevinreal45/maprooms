@@ -12,24 +12,31 @@ from .projection_data import (
     get_climate_projection_dataset,
     get_climate_projection_variable,
 )
-from .projection_sp import _integer, _seasonal_values
-from .projection_ts import _available_future_models
+from .projection_sp import (
+    _integer,
+    _seasonal_values,
+    _projection_period_years,
+)
 
+from .projection_ts import _available_future_models
 
 def get_climate_projection_agreement_sp_data(params):
     start = _integer(params, 'seasStart', 1, 12)
     end = _integer(params, 'seasEnd', 1, 12)
-    future_year = _integer(params, 'yearstartFut', 2015, 9998)
-    period = _integer(params, 'climPeriod', 1, 9998)
+
+    historical_year, historical_end, future_year, future_end = _projection_period_years(params, yaml_filename='model-agreement.yaml')
+
+    crosses_year = int(end < start)
+
+    historical_period = (historical_end - historical_year + 1 - crosses_year)
+    period = future_end - future_year + 1 - crosses_year
+
+    if historical_period < 1 or period < 1:
+        raise ValueError('Each period must contain at least one complete season.')
 
     signal = params['change']
     if signal not in ('positive', 'negative'):
         raise ValueError('Unknown change signal.')
-
-    crosses_year = int(end < start)
-
-    if future_year + period - 1 + crosses_year > 9999:
-        raise ValueError('Future period exceeds the supported year range.')
 
     config = GLOBAL_CONFIG['climate_projection']
 
@@ -85,8 +92,8 @@ def get_climate_projection_agreement_sp_data(params):
 
             historical_clim = _seasonal_values(
                 historical,
-                1981,
-                34 - crosses_year,
+                historical_year,
+                historical_period,
                 start,
                 end,
                 rainfall=rainfall,
@@ -182,9 +189,10 @@ def get_climate_projection_agreement_sp_data(params):
             int(counts.max()),
         ],
         'date': (
-            f'{season}: future seasons starting '
-            f'{future_year}–{future_year + period - 1}; '
-            f'historical baseline 1981–2014; '
+            f'{season} <br> Fut.Period.'
+            f'{future_year}–{future_end}; <br>'
+            f'Ref.Clim. '
+            f'{historical_year}–{historical_end}; <br>'
             f'{len(models)} models'
         ),
     }

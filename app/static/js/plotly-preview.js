@@ -2525,19 +2525,43 @@ function preview_projection_query_pdf(tempRes, prefix = `${tempRes}-seasonal-pro
         scenario: $(`#${prefix}-scenario`).val(),
         seasStart: Number($(`#${prefix}-start-month`).val()),
         seasEnd: Number($(`#${prefix}-end-month`).val()),
-        yearstartFut: Number(
-            $(`#${prefix}-future-date-calendar`).val()
-        ),
-        climPeriod: Number($(`#${prefix}-period-length`).val()),
-        // geomExtract: "points",
-        // pointsList: getClickLoctation()
+        yearstartH: Number($(`#${prefix}-historical-start`).val()),
+        yearendH: Number($(`#${prefix}-historical-end`).val()),
+        yearstartFut: Number($(`#${prefix}-future-start`).val()),
+        yearendFut: Number($(`#${prefix}-future-end`).val()),
+    };
+
+
+    const validYears = [
+        query.yearstartH,
+        query.yearendH,
+        query.yearstartFut,
+        query.yearendFut
+    ].every(value => (
+        Number.isInteger(value) &&
+        value >= 1 &&
+        value <= 9998
+    ));
+
+    const crossesYear = Number(query.seasEnd < query.seasStart);
+
+    if (
+        !validYears ||
+        query.yearendH - query.yearstartH + 1 <= crossesYear ||
+        query.yearendFut - query.yearstartFut + 1 <= crossesYear
+    ) {
+        flashMessage(
+            'Enter valid historical and future periods.',
+            'error'
+        );
+        return false;
     };
 
     const valid = [
         query.seasStart,
         query.seasEnd,
         query.yearstartFut,
-        query.climPeriod
+        // query.climPeriod
     ].every(value => Number.isInteger(value) && value > 0);
 
     if (!valid || query.seasStart > 12 || query.seasEnd > 12) {
@@ -2692,10 +2716,9 @@ function preview_projection_query_series(
         variable: $(`#${prefix}-variable`).val(),
         seasStart: Number($(`#${prefix}-start-month`).val()),
         seasEnd: Number($(`#${prefix}-end-month`).val()),
-        scenarios: scenarios,
-        // geomExtract: 'points',
-        // pointsList: getClickLoctation()
+        scenarios: scenarios
     };
+
 
     const validMonths = [
         query.seasStart,

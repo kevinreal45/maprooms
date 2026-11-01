@@ -13,6 +13,8 @@ from .projection_data import (
     get_climate_projection_variable
 )
 
+from pathlib import Path
+from app.scripts.util import load_yaml_file
 
 def _integer(params, key, minimum, maximum):
     value = params[key]
@@ -23,6 +25,41 @@ def _integer(params, key, minimum, maximum):
 
     return number
 
+def _projection_period_years(
+    params,
+    yaml_filename='seasonal-change.yaml',
+):
+    yaml_file = (
+        Path(__file__).resolve().parents[1]
+        / 'yaml'
+        / yaml_filename
+    )
+    periods = load_yaml_file(yaml_file)['climatological_period']
+
+    limits = (
+        ('yearstartH', periods['historical'], 'Historical climate period start year'),
+        ('yearendH', periods['historical'], 'Historical climate period end year'),
+        ('yearstartFut', periods['future'], 'Future projection period start year'),
+        ('yearendFut', periods['future'], 'Future projection period end year'),
+    )
+
+    years = []
+
+    for key, period, label in limits:
+        minimum = period['start_year']
+        maximum = period['end_year']
+
+        try:
+            year = _integer(params, key, minimum, maximum)
+        except (KeyError, TypeError, ValueError, OverflowError):
+            raise ValueError(
+                f'{label} must be between '
+                f'{minimum} and {maximum}.'
+            ) from None
+
+        years.append(year)
+
+    return tuple(years)
 
 def climate_projection_sp_data(params):
     colorbar = params['colorbar']
@@ -84,14 +121,20 @@ def climate_projection_sp_data(params):
 def get_climate_projection_sp_data(params):
     start_month = _integer(params, 'seasStart', 1, 12)
     end_month = _integer(params, 'seasEnd', 1, 12)
-    # historical_year = _integer(params, 'yearstartH', 1, 9998)
 
-    historical_year = 1981
-    historical_end = 2014
+    historical_year, historical_end, future_year, future_end = _projection_period_years(params)
 
-    historical_period = (historical_end - historical_year + 1 - int(end_month < start_month))
-    future_year = _integer(params, 'yearstartFut', 1, 9998)
-    period = _integer(params, 'climPeriod', 1, 9998)
+    crosses_year = int(end_month < start_month)
+
+    historical_period = (
+        historical_end - historical_year + 1 - crosses_year
+    )
+    period = future_end - future_year + 1 - crosses_year
+
+    if historical_period < 1 or period < 1:
+        raise ValueError(
+            'Each period must contain at least one complete season.'
+        )
 
     if max(historical_year, future_year) + period > 9999:
         raise ValueError('Selected period exceeds the supported year range.')
@@ -166,9 +209,9 @@ def get_climate_projection_sp_data(params):
         'longname': f'Seasonal change: {variable_name}',
         'units': units,
         'date': (
-            f'{season}: '
-            f'{future_year}–{future_year + period - 1} minus '
-            f'{historical_year}–{historical_end}'
+            f'{season}<br>'
+            f'Fut.Period. {future_year}–{future_end}<br>'
+            f'Ref.Clim. {historical_year}–{historical_end}'
         ),
         'spatial_resolution': {
             'lon': float(np.round(
