@@ -20,7 +20,12 @@ from .projection_data import (
     get_climate_projection_variable
 )
 
-from .projection_sp import _integer, _seasonal_values
+from .projection_sp import (
+    _integer,
+    _seasonal_values,
+    _projection_period_years,
+)
+
 from .projection_spi import (
     _projection_spi_polygon,
     _subset_projection_spi_polygon,
@@ -156,23 +161,26 @@ def _point_seasonal_sample(
         'lat': selected_lat
     }
 
-
 def climate_projection_ts_pdf(params):
     start = _integer(params, 'seasStart', 1, 12)
     end = _integer(params, 'seasEnd', 1, 12)
-    future_year = _integer(params, 'yearstartFut', 1, 9998)
-    period = _integer(params, 'climPeriod', 1, 9998)
+    historical_year, historical_end, future_year, future_end = _projection_period_years(params)
 
-    if future_year + period - 1 + int(end < start) > 9999:
-        raise ValueError('Future period exceeds the supported year range.')
+    crosses_year = int(end < start)
+
+    historical_period = (
+        historical_end - historical_year + 1 - crosses_year
+    )
+    period = future_end - future_year + 1 - crosses_year
+
+    if historical_period < 1 or period < 1:
+        raise ValueError(
+            'Each period must contain at least one complete season.'
+        )
 
     params, lon, lat = _seasonal_chart_location(params)
 
     lon = (lon + 180) % 360 - 180
-
-    historical_year = 1981
-    historical_end = 2014
-    historical_period = (historical_end - historical_year + 1 - int(end < start))
 
     config = GLOBAL_CONFIG['climate_projection']
 
@@ -279,11 +287,8 @@ def climate_projection_ts_pdf(params):
             }
         }
 
-    historical['label'] = 'Historical 1981–2014'
-    future['label'] = (
-        f"{params['scenario']} "
-        f"{future_year}–{future_year + period - 1}"
-    )
+    historical['label'] = (f'Historical {historical_year}–{historical_end}')
+    future['label'] = (f"{params['scenario']} {future_year}–{future_end}")
 
     variable = config['variables'][params['variable']]
     variable_name = config['netcdf'][variable]['name']
@@ -441,10 +446,18 @@ def climate_projection_ts_series(params):
     lon = (lon + 180) % 360 - 180
 
     historical_start = 1981
-    historical_period = 34 - crosses_year
+    historical_end = 2014
 
     future_start = 2015
-    future_period = 86 - crosses_year
+    future_end = 2100
+
+    historical_period = (historical_end - historical_start + 1 - crosses_year)
+    future_period = (future_end - future_start + 1 - crosses_year)
+
+    if historical_period < 1 or future_period < 1:
+        raise ValueError(
+            'Each period must contain at least one complete season.'
+        )
 
     historical_years = np.arange(
         historical_start,
@@ -672,7 +685,7 @@ def climate_projection_ts_series(params):
             'anomaly': {
                 'historical': historical_anomaly_stats,
                 'scenarios': scenario_anomalies,
-                'baseline_period': [1981, 2014],
+                'baseline_period': [historical_start, historical_end],
                 'baseline_method': 'each_model_historical_mean'
             },
             'info': {

@@ -1145,22 +1145,48 @@
     </fieldset>
     <fieldset class="border border-secondary rounded-3">
         <legend class="legend-label">
-            {{ pageText.opt_climatological_period.label }}
+            {{ pageText.opt_climatological_period.historical.label }}
         </legend>
-        <div class="mb-2">
-            Historical:
-            {{ pageText.climatological_period.historical.start_year }}–{{ pageText.climatological_period.historical.end_year }}
+        <div class="w-100">
+            <div class="row p-0 m-0">
+                <div class="col-sm-4 d-flex justify-content-end text-end align-items-center pe-1 m-0">
+                    {{ pageText.opt_climatological_period.historical.start_year }}
+                </div>
+                <div class="col-sm-2 p-0 m-0">
+                    <input id="{{ prefix }}-historical-start" class="form-control text-center px-0" type="text" value="{{ pageText.climatological_period.historical.start_year }}">
+                </div>
+                <div class="col-sm-4 d-flex justify-content-end text-end align-items-center pe-1 m-0">
+                    {{ pageText.opt_climatological_period.historical.end_year }}
+                </div>
+                <div class="col-sm-2 p-0 m-0">
+                    <input id="{{ prefix }}-historical-end" class="form-control text-center px-0" type="text" value="{{ pageText.climatological_period.historical.end_year }}">
+                </div>
+            </div>
         </div>
-        <label for="{{ prefix }}-future-date-calendar">
-            {{ pageText.opt_climatological_period.future_start_year }}
-        </label>
-        <input id="{{ prefix }}-future-date-calendar" class="form-control" type="number" min="2015" max="9998">
-        <label for="{{ prefix }}-period-length" class="mt-2">
-            {{ pageText.opt_climatological_period.length }}
-            ({{ pageText.opt_climatological_period.unit }})
-        </label>
-        <input id="{{ prefix }}-period-length" class="form-control" type="number" min="1">
     </fieldset>
+
+    <fieldset class="border border-secondary rounded-3">
+        <legend class="legend-label">
+            {{ pageText.opt_climatological_period.future.label }}
+        </legend>
+        <div class="w-100">
+            <div class="row p-0 m-0">
+                <div class="col-sm-4 d-flex justify-content-end text-end align-items-center pe-1 m-0">
+                    {{ pageText.opt_climatological_period.future.start_year }}
+                </div>
+                <div class="col-sm-2 p-0 m-0">
+                    <input id="{{ prefix }}-future-start" class="form-control text-center px-0" type="text" value="{{ pageText.climatological_period.future.start_year }}">
+                </div>
+                <div class="col-sm-4 d-flex justify-content-end text-end align-items-center pe-1 m-0">
+                    {{ pageText.opt_climatological_period.future.end_year }}
+                </div>
+                <div class="col-sm-2 p-0 m-0">
+                    <input id="{{ prefix }}-future-end" class="form-control text-center px-0" type="text" value="{{ pageText.climatological_period.future.end_year }}">
+                </div>
+            </div>
+        </div>
+    </fieldset>
+
 </div>
 {% endmacro %}
 <!--  -->
@@ -1218,40 +1244,54 @@
         <div id="{{ prefix }}-season-summary" class="d-flex justify-content-center">
         </div>
     </fieldset>
+    <!--  -->
+
     <fieldset class="border border-secondary rounded-3">
-        <legend class="legend-label">{{ pageText.opt_climatological_period.label }}</legend>
-        <div class="container-fluid">
-            <div class="row gx-1">
-                <div class="col-md-6">
-                    {{ pageText.opt_climatological_period.historical_start_year }}
+        <legend class="legend-label">
+            {{ pageText.opt_climatological_period.historical.label }}
+        </legend>
+        <div class="w-100">
+            <div class="row p-0 m-0">
+                <div class="col-sm-4 d-flex justify-content-end text-end align-items-center pe-1 m-0">
+                    {{ pageText.opt_climatological_period.historical.start_year }}
                 </div>
-                <div class="col-md-6">
-                    {{ pageText.opt_climatological_period.future_start_year }}
+                <div class="col-sm-2 p-0 m-0">
+                    <input id="{{ prefix }}-historical-start" class="form-control text-center px-0" type="text" value="{{ pageText.climatological_period.historical.start_year }}">
                 </div>
-            </div>
-            <div class="row gx-1">
-                <div id="{{ prefix }}-historical-date" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="{{ pageText.opt_climatological_period.historical_start_year }}" class="col-md-6">
-                    <input id="{{ prefix }}-historical-date-calendar" type="text" class="form-control text-center">
+                <div class="col-sm-4 d-flex justify-content-end text-end align-items-center pe-1 m-0">
+                    {{ pageText.opt_climatological_period.historical.end_year }}
                 </div>
-                <div id="{{ prefix }}-future-date" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="{{ pageText.opt_climatological_period.future_start_year }}" class="col-md-6">
-                    <input id="{{ prefix }}-future-date-calendar" type="text" class="form-control text-center">
-                </div>
-            </div>
-            <div class="row mt-2">
-                <div class="col-sm-10 d-flex justify-content-end align-items-center text-end pe-1 me-0">
-                    {{ pageText.opt_climatological_period.length }}
-                    ({{ pageText.opt_climatological_period.unit }})
-                </div>
-                <div class="col-sm-2 ps-0 ms-0">
-                    <input id="{{ prefix }}-period-length" class="form-control text-center px-0" type="text" value="{{ pageText.climatological_period.length }}">
+                <div class="col-sm-2 p-0 m-0">
+                    <input id="{{ prefix }}-historical-end" class="form-control text-center px-0" type="text" value="{{ pageText.climatological_period.historical.end_year }}">
                 </div>
             </div>
-        </div>
-        <div id="{{ prefix }}-period-summary" class="d-flex justify-content-center">
         </div>
     </fieldset>
+
+    <fieldset class="border border-secondary rounded-3">
+        <legend class="legend-label">
+            {{ pageText.opt_climatological_period.future.label }}
+        </legend>
+        <div class="w-100">
+            <div class="row p-0 m-0">
+                <div class="col-sm-4 d-flex justify-content-end text-end align-items-center pe-1 m-0">
+                    {{ pageText.opt_climatological_period.future.start_year }}
+                </div>
+                <div class="col-sm-2 p-0 m-0">
+                    <input id="{{ prefix }}-future-start" class="form-control text-center px-0" type="text" value="{{ pageText.climatological_period.future.start_year }}">
+                </div>
+                <div class="col-sm-4 d-flex justify-content-end text-end align-items-center pe-1 m-0">
+                    {{ pageText.opt_climatological_period.future.end_year }}
+                </div>
+                <div class="col-sm-2 p-0 m-0">
+                    <input id="{{ prefix }}-future-end" class="form-control text-center px-0" type="text" value="{{ pageText.climatological_period.future.end_year }}">
+                </div>
+            </div>
+        </div>
+    </fieldset>
+
     <!--  -->
-    <fieldset id="{{ prefix }}-distribution" class="border border-secondary rounded-3">
+    {#<fieldset id="{{ prefix }}-distribution" class="border border-secondary rounded-3">
         <legend class="legend-label">{{ pageText.distribution_change.label }}</legend>
         <div class="w-100">
             <div class="row p-0 m-0">
@@ -1269,7 +1309,7 @@
                 </div>
             </div>
         </div>
-    </fieldset>
+    </fieldset> #}
 </div>
 {% endmacro %}
 <!--  -->

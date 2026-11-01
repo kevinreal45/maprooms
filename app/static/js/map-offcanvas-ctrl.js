@@ -808,14 +808,18 @@ function setOffCanvasMapControlSeasonalProjection(tempRes, prefix = `${tempRes}-
     $(`#${prefix}-start-month`).val(SEASON_DEFAULTS.start_month);
     $(`#${prefix}-end-month`).val(SEASON_DEFAULTS.end_month);
 
-    $(`#${prefix}-historical-date-calendar`)
+
+    $(`#${prefix}-historical-start`)
         .val(CLIMATOLOGICAL_PERIOD.historical.start_year);
 
-    $(`#${prefix}-future-date-calendar`)
+    $(`#${prefix}-historical-end`)
+        .val(CLIMATOLOGICAL_PERIOD.historical.end_year);
+
+    $(`#${prefix}-future-start`)
         .val(CLIMATOLOGICAL_PERIOD.future.start_year);
 
-    $(`#${prefix}-period-length`)
-        .val(CLIMATOLOGICAL_PERIOD.length);
+    $(`#${prefix}-future-end`)
+        .val(CLIMATOLOGICAL_PERIOD.future.end_year);
 }
 
 // function setOffCanvasMapControlSpiProjection(tempRes) {

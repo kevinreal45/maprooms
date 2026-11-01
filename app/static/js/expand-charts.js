@@ -1303,8 +1303,10 @@ function setProjectionExpandModalDistribution(tempRes, contID) {
         'scenario',
         'start-month',
         'end-month',
-        'future-date-calendar',
-        'period-length'
+        'historical-start',
+        'historical-end',
+        'future-start',
+        'future-end'
     ];
 
     fields.forEach(field => {
