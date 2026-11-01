@@ -3612,9 +3612,9 @@ function preview_health_cmst_query(tempRes) {
     query.dataset = DATA_SET.use;
     query.variable = $(`#${tempRes}-map-variable`).val();
     query.cmstProduct = 'AllCondProb';
-    query.startYear = BASE_PERIOD.start_year;
-    query.endYear = BASE_PERIOD.end_year;
-    query.minYear = BASE_PERIOD.min_year;
+    query.startYear = Number($(`#${tempRes}-base-period-start`).val());
+    query.endYear = Number($(`#${tempRes}-base-period-end`).val());
+    query.minYear = Number($(`#${tempRes}-base-period-min`).val());
 
     return query;
 }

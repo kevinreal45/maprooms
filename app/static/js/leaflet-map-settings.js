@@ -1424,6 +1424,7 @@ function displayHealthCmstMap(tempRes, options, map) {
                 .html();
 
             targetMap.displayText_date.update(label);
+            preview_health_cmst_display_charts(tempRes);
         },
         options,
         map
