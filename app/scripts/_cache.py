@@ -113,3 +113,29 @@ def hash_params_projection_seaschange(params):
     ]
     pars = {k: str(v) for k, v in params.items() if k in pars_keys}
     return _hash_params(pars)
+
+
+def hash_params_projection_ts_series(params):
+    pars_keys = [
+        'variable', 'seasStart', 'seasEnd', 'scenarios', 'pointsList', 
+        'pointsSource', 'geomExtract'
+    ]
+    pars = {k: str(v) for k, v in params.items() if k in pars_keys}
+    return _hash_params(pars)
+
+def hash_params_projection_pdf(params):
+    pars_keys = [
+        'variable', 'model', 'scenario', 'seasStart', 'seasEnd',  'yearstartH', 'yearendH', 
+        'yearstartFut', 'yearendFut', 'geomExtract', 'pointsSource', 'pointsList'
+    ]
+    pars = {k: str(v) for k, v in params.items() if k in pars_keys}
+    return _hash_params(pars)
+
+def hash_params_projection_agreement_map(params):
+    pars_keys = [
+        'variable', 'scenario', 'change', 'seasStart', 'seasEnd', 'yearstartH', 
+        'yearendH', 'yearstartFut', 'yearendFut'
+    ]
+    pars = {k: str(v) for k, v in params.items() if k in pars_keys}
+    return _hash_params(pars)
+
