@@ -2,9 +2,11 @@
     <nav class="navbar navbar-expand-md">
         <div class="container-fluid">
             <div class="navbar-header me-2">
+                {% if metInfo.dislpaySEILogo %}
                 <a class="navbar-brand navbar-logo-link" href="https://www.sei.org/" target="_blank">
                     <img id="sei-logo" class="navbar-logo" src="{{ url_for('static', filename='images/default-sei_logo.png') }}">
                 </a>
+                {% endif %}
                 <a class="navbar-brand navbar-logo-link" href="{{ url_for('homepage') }}">
                     <img class="meteo-logo navbar-logo" src="{{ url_for('static', filename='images/default-meteo_logo.png') }}">
                 </a>

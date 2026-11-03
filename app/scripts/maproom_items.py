@@ -323,3 +323,13 @@ def parse_lang_yaml_nested(nested_dict):
         }
 
     return parse_value(nested_dict)
+
+def update_metService_info():
+    app_dir = GLOBAL_CONFIG['app_dir']
+    return parse_config_yaml_file(app_dir, 'nmhs-info.yaml')
+
+    # app_dir = GLOBAL_CONFIG['app_dir']
+    # yaml_dir = os.path.join(app_dir, 'yaml')
+    # met_file = os.path.join(yaml_dir, 'nmhs-info.yaml')
+    # tmp = load_yaml_file(met_file)
+    # return parse_lang_yaml_nested(tmp)
