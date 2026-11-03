@@ -84,7 +84,8 @@ from app.scripts.maproom_items import (
     load_navigation_items,
     load_maproom_page_text,
     data_info_coverage,
-    _url_args_nav_path
+    _url_args_nav_path,
+    update_metService_info
 )
 from app.scripts._cache import cache
 cache.init_app(app)
@@ -194,6 +195,7 @@ def render_template_main(nav_path):
     mapItems = load_maproom_items(nav_path)
     mapNav = load_navigation_items(nav_path)
     pageText = load_maproom_page_text(nav_path, 'main')
+    GLOBAL_CONFIG['metInfo'] = update_metService_info()
     return render_template(
         'main.html',
         error_login=False,
