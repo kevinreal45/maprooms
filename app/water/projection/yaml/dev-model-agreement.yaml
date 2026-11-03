@@ -137,7 +137,6 @@ opt_inputs:
             fr: Signal de changement
         default: positive
 
-
 climatological_period:
     historical:
         start_year: 1981
@@ -175,4 +174,4 @@ opt_climatological_period:
             fr: Année de fin future
         unit:
             en: years
-            fr: ans 
+            fr: ans

@@ -105,3 +105,11 @@ def hash_params_ts_cropsuit(params):
     ]
     pars = {k: str(v) for k, v in params.items() if k in pars_keys}
     return _hash_params(pars)
+
+def hash_params_projection_seaschange(params):
+    pars_keys = [
+        'variable', 'model', 'scenario', 'seasStart', 'seasEnd',
+        'yearstartH', 'yearendH', 'yearstartFut', 'yearendFut'
+    ]
+    pars = {k: str(v) for k, v in params.items() if k in pars_keys}
+    return _hash_params(pars)

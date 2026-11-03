@@ -15,6 +15,10 @@ from .projection_data import (
 
 from pathlib import Path
 from app.scripts.util import load_yaml_file
+from app.scripts._cache import (
+    cache,
+    hash_params_projection_seaschange
+)
 
 def _integer(params, key, minimum, maximum):
     value = params[key]
@@ -68,7 +72,11 @@ def climate_projection_sp_data(params):
     if check['status'] == -1:
         return check
 
-    data = get_climate_projection_sp_data(params)
+    cache_key = hash_params_projection_seaschange(params)
+    data = cache.get(cache_key)
+    if data is None:
+        data = get_climate_projection_sp_data(params)
+        cache.set(cache_key, data)
 
     if not np.isfinite(data['data']).any():
         return {
@@ -77,10 +85,6 @@ def climate_projection_sp_data(params):
         }
 
     breaks = colorbar['break_cbar']
-
-    # if breaks is None:
-    #     limit = 10 if params['variable'] == 'rainfall' else 3
-    #     breaks = np.arange(-limit, limit + 0.5).tolist()
 
     if breaks is None:
         if params['variable'] == 'rainfall':
