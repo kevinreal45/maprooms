@@ -4,7 +4,7 @@
 {{ super() }}
 <style type="text/css">
 #dev-sei-logo {
-    width: 200px;
+    width: 150px;
     max-width: 100%;
     height: auto;
 }
@@ -31,7 +31,7 @@
                         {{ metInfo.fundingOrg }}
                     </div>
                     <div class="col-auto bg-white">
-                        <img id="funding-org" src="{{ url_for('static', filename='images/wbglogo-topnav-eng.svg') }}">
+                        <img id="funding-org" src="{{ url_for('static', filename='images/default-wbg_logo.svg') }}">
                     </div>
                 </div>
             </div>
@@ -41,7 +41,7 @@
                         {{ metInfo.developSEI }}
                     </div>
                     <div class="col-auto">
-                        <img id="dev-sei-logo" src="{{ url_for('static', filename='images/SEI-Logo-Extended-Dark-Green-RGB.jpg') }}">
+                        <img id="dev-sei-logo" src="{{ url_for('static', filename='images/default-sei_logo_dev.jpg') }}">
                     </div>
                 </div>
             </div>
