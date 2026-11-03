@@ -953,33 +953,6 @@ function queryParamsClimateProjectionSeasonalMap() {
     return query;
 }
 
-
-// function displayClimateProjectionSeasonalMap(options, map) {
-//     const query = queryParamsClimateProjectionSeasonalMap();
-
-//     if (!query) {
-//         return false;
-//     }
-
-//     const endpoint = createEndpoint(
-//         'climate_projection',
-//         'climate_projection_seasonal_map'
-//     );
-
-//     return ajaxLeafletMap(
-//         endpoint,
-//         query,
-//         (data, settings, targetMap) => {
-//             displayRasterImage(data, settings, targetMap);
-//             targetMap.displayText_date.update(data.date);
-//         },
-//         options,
-//         map
-//     );
-
-// }
-
-
 function queryParamsClimateProjectionAgreementMap() {
     const prefix = 'seasonal-model-proj';
 
