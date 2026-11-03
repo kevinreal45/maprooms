@@ -181,6 +181,21 @@ COLORS_MAPROOM['anomalies_1'] = {
     'ext': ['#8B2323', '#3B638F'],
 }
 
+COLORS_MAPROOM['anomalies_1r'] = {
+    'colors': [
+        '#3B638F',
+        '#608CC4',
+        '#BACCE4',
+        '#EBF3DE',
+        '#FFFFFF',
+        '#FCE9DA',
+        '#F28E43',
+        '#BD5B1C',
+        '#8B2323',
+    ],
+    'ext': ['#3B638F', '#8B2323'],
+}
+
 COLORS_MAPROOM['anomalies_2'] = {
     'colors': [
         '#6b0303',
@@ -204,6 +219,31 @@ COLORS_MAPROOM['anomalies_2'] = {
         '#00006b',
     ],
     'ext': ['#6b0303', '#00006b'],
+}
+
+COLORS_MAPROOM['anomalies_2r'] = {
+    'colors': [
+        '#00006b',
+        '#00009c',
+        '#0000d6',
+        '#0000f7',
+        '#2e2eff',
+        '#5c5cff',
+        '#8a8aff',
+        '#b8b8ff',
+        '#e6e6ff',
+        '#ffffff',
+        '#ffe6e6',
+        '#ffb8b8',
+        '#ff8a8a',
+        '#ff5c5c',
+        '#ff2e2e',
+        '#f70000',
+        '#d60000',
+        '#9c0000',
+        '#6b0303',
+    ],
+    'ext': ['#00006b', '#6b0303'],
 }
 
 COLORS_MAPROOM['anomalies_3'] = {

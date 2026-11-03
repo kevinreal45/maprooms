@@ -84,9 +84,70 @@ description:
         </ul>
 
 dataset:
-    use: ALL
+    use: FCST
+    obs: ALL
     variables:
-        precip: [precip]
-        tmean: [tmin, tmax]
-        tmax: [tmax]
-        tmin: [tmin]
+        rainfall: [precip]
+        temperature: [tmean, tmin, tmax]
+    observations:
+        rainfall: [precip]
+        temperature: [tmin, tmax]
+
+variables:
+    label:
+        en: Variable
+        fr: Variable
+    select:
+        rainfall:
+            en: Rainfall
+            fr: Précipitation
+        temperature:
+            en: Temperature
+            fr: Température
+
+forecasts:
+    label:
+        en: Parameters
+        fr: Paramètres
+    parameters:
+        rainfall:
+            TotRain:
+                en: Total rainfall
+                fr: Cumul de précipitations
+            AnomRain:
+                en: Rainfall anomaly
+                fr: Anomalie de précipitation
+            HeavyRain:
+                en: Heavy rainfall
+                fr: Probabilité de dépassement
+        temperature:
+            MeanTemp:
+                en: Mean temperature
+                fr: Température moyenne
+            AnomTemp:
+                en: Mean temperature anomaly
+                fr: Anomalie de température moyenne
+            MinTemp:
+                en: Minimum temperature
+                fr: Température minimale
+            MaxTemp:
+                en: Maximum temperature
+                fr: Température maximale
+
+    order:
+        rainfall: [TotRain, AnomRain, HeavyRain]
+        temperature: [MeanTemp, AnomTemp, MinTemp, MaxTemp]
+
+forecast_period:
+    issued:
+        en: Forecast issued
+        fr: Prévision émise
+    target:
+        en: Target period
+        fr: Période cible
+    start:
+        en: from
+        fr: du
+    end:
+        en: to
+        fr: au

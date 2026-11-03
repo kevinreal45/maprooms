@@ -1,3 +1,60 @@
-page:
-    en: test
-    fr: test
+navigation_label:
+    en: Station observation upload types
+    fr: Types d'importation des observations des stations
+upload_manual_observations:
+    en: Upload manual observation data
+    fr: Importer des données d'observation manuelles
+choose_file:
+    en: Choose one CSV file
+    fr: Choisir un fichier CSV
+upload_button:
+    en: Upload
+    fr: Importer
+chosen_file:
+    en: Selected file
+    fr: Fichier sélectionné
+uploaded_file:
+    en: Uploaded file
+    fr: Fichier importé
+description:
+    en: The file must contain station observations in CDT (Climate Data Tools) station data format.
+    fr: Le fichier doit contenir des observations de stations au format de données de station CDT (Climate Data Tools).
+filename_format:
+    en: 'Required filename format: <variable>_<start date>_<end date>.csv'
+    fr: 'Format de nom de fichier requis : <variable>_<date de début>_<date de fin>.csv'
+allowed_variables_title:
+    en: Allowed variables
+    fr: Variables autorisées
+allowed_variables:
+    - precip
+    - tmax
+    - tmin
+    - tmean
+    - rhmin
+    - rhmax
+    - rhmean
+date_explanation:
+    en: 'Start and end dates must use YYYYMMDD format and the start date must not be later than the end date. Example: precip_20261201_20261210.csv'
+    fr: 'Les dates de début et de fin doivent utiliser le format AAAAMMJJ et la date de début ne doit pas être postérieure à la date de fin. Exemple : precip_20261201_20261210.csv'
+messages:
+    no_file:
+        en: Select a CSV file before uploading.
+        fr: Sélectionnez un fichier CSV avant l'importation.
+    invalid_filename:
+        en: The filename does not match the required variable_YYYYMMDD_YYYYMMDD.csv format.
+        fr: Le nom du fichier ne correspond pas au format requis variable_AAAAMMJJ_AAAAMMJJ.csv.
+    invalid_dates:
+        en: The filename contains an invalid date or the start date is later than the end date.
+        fr: Le nom du fichier contient une date invalide ou la date de début est postérieure à la date de fin.
+    invalid_cdt_format:
+        en: The file content is not a valid CDT station data format.
+        fr: Le contenu du fichier n'est pas dans un format valide de données de station CDT.
+    date_range_mismatch:
+        en: The first and last dates in the file do not match the start and end dates in the filename.
+        fr: Les première et dernière dates du fichier ne correspondent pas aux dates de début et de fin du nom de fichier.
+    upload_success:
+        en: The station observation file was uploaded successfully.
+        fr: Le fichier d'observations de stations a été importé avec succès.
+    upload_failed:
+        en: The station observation file could not be saved.
+        fr: Le fichier d'observations de stations n'a pas pu être enregistré.

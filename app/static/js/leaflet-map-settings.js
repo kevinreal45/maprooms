@@ -840,6 +840,7 @@ function queryParamsClimate10dasyFcstMap(time_res) {
     let query = new Object();
     query.temporalRes = time_res;
     query.dataset = DATA_SET.use;
+    query.dataset_obs = DATA_SET.obs;
     query.map_variable = $(`#${time_res}-map-variable`).val();
     query.variable = query.map_variable;
 

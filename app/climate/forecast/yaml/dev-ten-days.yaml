@@ -85,6 +85,7 @@ description:
 
 dataset:
     use: FCST
+    obs: ALL
     variables:
         rainfall: [precip]
         temperature: [tmean, tmin, tmax]

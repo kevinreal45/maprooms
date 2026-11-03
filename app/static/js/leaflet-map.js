@@ -1423,77 +1423,89 @@ function saveSpatialAverageSelect2() {
 let currentPlottyInstance = null;
 
 function colorbarSettings(ckeys_labels, ckeys_title) {
-    $('#map-colorbar-colors').on('change', function() {
-        if ($(this).val() === 'user') {
-            $('#colorbar-color-user').show();
-            $('#colorbar-color-preset').hide();
-            $('#colorbar-preview-preset').hide();
-            $('#colorbar-preview-user').show();
-        } else {
-            $('#colorbar-color-user').hide();
-            $('#colorbar-color-preset').show();
-            $('#colorbar-preview-preset').show();
-            $('#colorbar-preview-user').hide();
-        }
-    });
-    $('#map-colorbar-colors').trigger('change');
+    const labels = Array.isArray(ckeys_labels) ? ckeys_labels : [];
 
-    $('#colorbar-preview-user-btn').on('click', () => {
-        const colorbar = colorbarGetData();
-        if (!colorbar) {
-            return;
-        }
-        $.ajax({
-            type: 'POST',
-            url: '/preview_user_colobar',
-            dataType: 'json',
-            data: JSON.stringify(colorbar),
-            contentType: 'application/json',
-            success: (json) => {
-                if (json.status === -1) {
-                    const kol = json.colors.join(', ');
-                    const msg = `${JS_TEXT.colorbar_col_invalid}: ${kol}`;
-                    flashMessage(msg, 'error');
-                    return false;
-                } else {
-                    $('#colorbar-preview-user').attr('src', json.colors);
-                }
-            },
-            error: (xhr, s, e) => {
-                displayAjaxError(xhr, s, e);
+    $('#map-colorbar-colors')
+        .off('change.colorbarSettings')
+        .on('change.colorbarSettings', function() {
+            if ($(this).val() === 'user') {
+                $('#colorbar-color-user').show();
+                $('#colorbar-color-preset').hide();
+                $('#colorbar-preview-preset').hide();
+                $('#colorbar-preview-user').show();
+            } else {
+                $('#colorbar-color-user').hide();
+                $('#colorbar-color-preset').show();
+                $('#colorbar-preview-preset').show();
+                $('#colorbar-preview-user').hide();
             }
         });
-    });
+    $('#map-colorbar-colors').trigger('change');
+
+    $('#colorbar-preview-user-btn')
+        .off('click.colorbarSettings')
+        .on('click.colorbarSettings', () => {
+            const colorbar = colorbarGetData();
+            if (!colorbar) {
+                return;
+            }
+            $.ajax({
+                type: 'POST',
+                url: '/preview_user_colobar',
+                dataType: 'json',
+                data: JSON.stringify(colorbar),
+                contentType: 'application/json',
+                success: (json) => {
+                    if (json.status === -1) {
+                        const kol = json.colors.join(', ');
+                        const msg = `${JS_TEXT.colorbar_col_invalid}: ${kol}`;
+                        flashMessage(msg, 'error');
+                        return false;
+                    } else {
+                        $('#colorbar-preview-user').attr('src', json.colors);
+                    }
+                },
+                error: (xhr, s, e) => {
+                    displayAjaxError(xhr, s, e);
+                }
+            });
+        });
 
     ////
-    $('#map-colorbar-breaks').on('change', function() {
-        if ($(this).val() === 'user') {
-            $('#colorbar-breaks-user').show();
-            $('#colorbar-breaks-user-text').html(ckeys_labels.join(', '));
-        } else {
-            $('#colorbar-breaks-user').hide();
-        }
-    });
+    $('#map-colorbar-breaks')
+        .off('change.colorbarSettings')
+        .on('change.colorbarSettings', function() {
+            if ($(this).val() === 'user') {
+                $('#colorbar-breaks-user').show();
+                $('#colorbar-breaks-user-text').val(labels.join(', '));
+            } else {
+                $('#colorbar-breaks-user').hide();
+            }
+        });
     $('#map-colorbar-breaks').trigger('change');
 
     ////
-    $('#colorbar-color-extension-check').on('change', function() {
-        if ($(this).prop('checked')) {
-            $('#colorbar-color-extension-div').show();
-        } else {
-            $('#colorbar-color-extension-div').hide();
-        }
-    });
+    $('#colorbar-color-extension-check')
+        .off('change.colorbarSettings')
+        .on('change.colorbarSettings', function() {
+            if ($(this).prop('checked')) {
+                $('#colorbar-color-extension-div').show();
+            } else {
+                $('#colorbar-color-extension-div').hide();
+            }
+        });
 
     ////
-    $('#colorbar-color-preset-select').on('change', function() {
-        if (currentPlottyInstance && typeof currentPlottyInstance.destroy === 'function') {
-            currentPlottyInstance.destroy();
-        }
+    $('#colorbar-color-preset-select')
+        .off('change.colorbarSettings')
+        .on('change.colorbarSettings', function() {
+            if (currentPlottyInstance && typeof currentPlottyInstance.destroy === 'function') {
+                currentPlottyInstance.destroy();
+            }
 
-        currentPlottyInstance = L.LeafletGeotiff.plotty({ colorScale: $(this).val() });
-        $('#colorbar-preview-preset').attr('src', currentPlottyInstance.colorScaleData);
-    });
+            currentPlottyInstance = L.LeafletGeotiff.plotty({ colorScale: $(this).val() });
+            $('#colorbar-preview-preset').attr('src', currentPlottyInstance.colorScaleData);
+        });
     // Custom Plotty scales are loaded asynchronously from /maproom_colors.
     // Production can return the map response before that smaller request, so
     // do not instantiate the preview until registration has completed.
@@ -1512,9 +1524,11 @@ function colorbarSettings(ckeys_labels, ckeys_title) {
     ////
     $('#colorbar-title-user').val(ckeys_title);
 
-    $('#colorbar-title-user').on('blur', function() {
-        $('.leaflet-colorbar .ckeyh-title td').html($(this).val().trim());
-    });
+    $('#colorbar-title-user')
+        .off('blur.colorbarSettings')
+        .on('blur.colorbarSettings', function() {
+            $('.leaflet-colorbar .ckeyh-title td').html($(this).val().trim());
+        });
 }
 
 function colorbarSetDefault(colors = null, breaks = null) {
@@ -1819,8 +1833,21 @@ async function maskImageMapRegions(json, region) {
 
     const lonToX = (lon, width) =>
         ((lon - imgExt.west) / (imgExt.east - imgExt.west)) * width;
+
+    // The PNG is rendered in Web-Mercator Y and Leaflet positions it in the
+    // same projection. Convert polygon latitude to that Y coordinate before
+    // mapping it to a canvas row; using linear latitude here shifts a clipped
+    // region north when the source raster has a large latitude extent.
+    const webMercatorY = (lat) => {
+        const maxLat = 85.0511287798066;
+        const clippedLat = Math.max(-maxLat, Math.min(maxLat, lat));
+        const radians = clippedLat * Math.PI / 180;
+        return Math.log(Math.tan(Math.PI / 4 + radians / 2));
+    };
+    const southY = webMercatorY(imgExt.south);
+    const northY = webMercatorY(imgExt.north);
     const latToY = (lat, height) =>
-        (1 - (lat - imgExt.south) / (imgExt.north - imgExt.south)) * height;
+        (1 - (webMercatorY(lat) - southY) / (northY - southY)) * height;
 
     const img = new Image();
     img.src = json.png;

@@ -7,6 +7,7 @@ import shapely
 from app.scripts._global import GLOBAL_CONFIG
 from app.scripts.util import load_yaml_file
 
+
 def read_blank_polygons():
     geom_layers = GLOBAL_CONFIG['geom_layers']
     subdiv_file = os.path.join(

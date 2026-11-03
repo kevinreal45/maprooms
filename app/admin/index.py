@@ -7,6 +7,7 @@ from flask import (
     session
 )
 from flask import current_app as app
+import json
 
 from app.auth.index import login_required
 from app.auth.scripts.users import getUserData
@@ -70,6 +71,30 @@ def upload_forecasts():
         'upload-forecasts', dataUser
     )
 
+def _upload_forecast_files(forecast_type):
+    variable = request.form.get('variable') if forecast_type == 'seasonal' else None
+    result = saveForecastFiles(
+        request.files.getlist('files'), forecast_type, variable
+    )
+    message_key = result.pop('message_key')
+    result['message'] = page_control_admin('upload-forecasts')['messages'][message_key]
+    return json.dumps(result)
+
+@admin_bp.route('/upload_seasonal_forecast', methods=['POST'])
+@login_required
+def upload_seasonal_forecast():
+    return _upload_forecast_files('seasonal')
+
+@admin_bp.route('/upload_tendays_forecast', methods=['POST'])
+@login_required
+def upload_tendays_forecast():
+    return _upload_forecast_files('tendays')
+
+@admin_bp.route('/upload_monthly_forecast', methods=['POST'])
+@login_required
+def upload_monthly_forecast():
+    return _upload_forecast_files('monthly')
+
 @admin_bp.route('/upload_stations')
 @login_required
 def upload_stations():
@@ -79,6 +104,14 @@ def upload_stations():
     return render_template_admin_page(
         'upload-stations', dataUser
     )
+
+@admin_bp.route('/upload_station_observation', methods=['POST'])
+@login_required
+def upload_station_observation():
+    result = saveStationObservationFile(request.files.get('file'))
+    message_key = result.pop('message_key')
+    result['message'] = page_control_admin('upload-stations')['messages'][message_key]
+    return json.dumps(result)
 
 @admin_bp.route('/edit_maprooms')
 @login_required

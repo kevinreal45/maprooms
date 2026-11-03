@@ -1,3 +1,106 @@
-page:
-    en: test
-    fr: test
+navigation_label:
+    en: Forecast upload types
+    fr: Types de prévisions à importer
+choose_files:
+    en: Choose NetCDF files
+    fr: Choisir les fichiers NetCDF
+upload_button:
+    en: Upload
+    fr: Importer
+chosen_files:
+    en: Selected files
+    fr: Fichiers sélectionnés
+uploaded_files:
+    en: Uploaded files
+    fr: Fichiers importés
+required_files:
+    en: Required files
+    fr: Fichiers obligatoires
+optional_files:
+    en: Optional files
+    fr: Fichiers facultatifs
+seasonal_variable:
+    label:
+        en: Seasonal forecast variable
+        fr: Variable de prévision saisonnière
+    rainfall:
+        en: Upload seasonal rainfall forecast
+        fr: Importer les prévisions saisonnières de précipitations
+    temperature:
+        en: Upload seasonal temperature forecast
+        fr: Importer les prévisions saisonnières de température
+forecasts:
+    seasonal:
+        title:
+            en: Upload seasonal forecast
+            fr: Importer les prévisions saisonnières
+        description:
+            en: Select all four required files. Optional hindcast and skill files may also be included. The forecast year must contain exactly four digits.
+            fr: Sélectionnez les quatre fichiers obligatoires. Les fichiers facultatifs de rétrospective et de scores peuvent aussi être inclus. L'année doit comporter exactement quatre chiffres.
+        required_files:
+            - MME_deterministic_forecast_YYYY.nc
+            - MME_forecast_prediction_error_variance_YYYY.nc
+            - MME_probabilistic_forecast_YYYY.nc
+            - obs.nc
+        optional_files:
+            - MME_deterministic_hindcasts.nc
+            - MME_hindcast_prediction_error_variance.nc
+            - MME_probabilistic_hindcasts.nc
+            - MME_skill_scores.nc
+    tendays:
+        title:
+            en: Upload 10-days forecast
+            fr: Importer les prévisions à 10 jours
+        description:
+            en: Select all five required 10-day forecast files. The hourly and percentile files are optional.
+            fr: Sélectionnez les cinq fichiers obligatoires de prévision à 10 jours. Les fichiers horaires et de percentile sont facultatifs.
+        required_files:
+            - PrecDaily.nc
+            - PrecExtreme.nc
+            - TavgDaily.nc
+            - TmaxDaily.nc
+            - TminDaily.nc
+        optional_files:
+            - PrecDailyYrsPercentile.nc
+            - PrecHourly.nc
+            - TavgHourly.nc
+    monthly:
+        title:
+            en: Upload monthly forecast
+            fr: Importer les prévisions mensuelles
+        description:
+            en: The monthly forecast file specification has not been defined yet.
+            fr: La spécification des fichiers de prévision mensuelle n'a pas encore été définie.
+        required_files: []
+        optional_files: []
+messages:
+    no_files:
+        en: Select the required files before uploading.
+        fr: Sélectionnez les fichiers obligatoires avant l'importation.
+    invalid_files:
+        en: The mandatory files are incomplete or one or more filenames do not match the expected names.
+        fr: Les fichiers obligatoires sont incomplets ou un ou plusieurs noms ne correspondent pas aux noms attendus.
+    duplicate_files:
+        en: Duplicate filenames are not allowed.
+        fr: Les noms de fichiers en double ne sont pas autorisés.
+    monthly_not_defined:
+        en: The monthly forecast file specification has not been defined yet.
+        fr: La spécification des fichiers de prévision mensuelle n'a pas encore été définie.
+    unknown_type:
+        en: Unknown forecast type.
+        fr: Type de prévision inconnu.
+    upload_success:
+        en: The forecast files were uploaded successfully.
+        fr: Les fichiers de prévision ont été importés avec succès.
+    upload_failed:
+        en: The forecast files could not be saved.
+        fr: Les fichiers de prévision n'ont pas pu être enregistrés.
+    invalid_variable:
+        en: Select a valid seasonal forecast variable.
+        fr: Sélectionnez une variable de prévision saisonnière valide.
+    seasonal_year_mismatch:
+        en: The year in the deterministic forecast filename does not match the year in its S coordinate.
+        fr: L'année du nom du fichier de prévision déterministe ne correspond pas à l'année de sa coordonnée S.
+    invalid_metadata:
+        en: The forecast metadata is missing or invalid.
+        fr: Les métadonnées de prévision sont manquantes ou invalides.

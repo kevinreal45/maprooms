@@ -25,3 +25,14 @@ googleMapsAPIKey: ''
 
 ## esri access token
 esriAccessToken: ''
+
+## SEI logo
+dislpaySEILogo: True
+
+## Funding
+fundingOrg:
+  en: Funded by the World Bank
+  fr: Finacé par la Banque Modiale
+developSEI:
+  en: Developed by
+  fr: Développé par

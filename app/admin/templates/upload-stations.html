@@ -6,9 +6,40 @@
 <!-- <style> </style> -->
 {% endblock %}
 {% block content %}
-<div class="container-fluid" id="container-page">
-    {{ fmacros.tmp_placeholder_image(urlArgs) }}
-    <!--  -->
+<div class="container-fluid py-4" id="container-page">
+    <div class="row g-4">
+        <div class="col-md-3" id="col_left">
+            <nav class="list-group" aria-label="{{ pageCtrl.navigation_label }}">
+                <a class="list-group-item list-group-item-action station-upload-link active" href="#">
+                    {{ pageCtrl.upload_manual_observations }}
+                </a>
+            </nav>
+        </div>
+        <div class="col-md-9" id="col_right">
+            <h3 id="station-upload-title" class="mb-4">{{ pageCtrl.upload_manual_observations }}</h3>
+            <div class="mb-3">
+                <label class="form-label" for="station-file">{{ pageCtrl.choose_file }}</label>
+                <div class="input-group">
+                    <input class="form-control w-50" id="station-file" type="file" accept=".csv,text/csv">
+                    <button class="btn btn-primary" id="upload-station-button" type="button">
+                        {{ pageCtrl.upload_button }}
+                    </button>
+                </div>
+            </div>
+            <div id="chosen-file" class="mt-4 border rounded p-3" aria-live="polite"></div>
+            <div id="station-description" class="user-inputs-info mt-4 border rounded p-3">
+                <p>{{ pageCtrl.description }}</p>
+                <p>{{ pageCtrl.filename_format }}</p>
+                <h5>{{ pageCtrl.allowed_variables_title }}</h5>
+                <ul>
+                    {% for variable in pageCtrl.allowed_variables %}
+                    <li>{{ variable }}</li>
+                    {% endfor %}
+                </ul>
+                <p class="mb-0">{{ pageCtrl.date_explanation }}</p>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 {% block javascript %}

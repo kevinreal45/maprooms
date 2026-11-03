@@ -919,6 +919,9 @@ soilgrids:
 geom_layers:
     shp_dir: /data/maprooms/DATA/SHP
 
+stations_data:
+    daily_dir: /data/maprooms/DATA/STATIONS
+
 forecast_data:
     seasonal:
         rainfall:

@@ -2,7 +2,8 @@
 colorbar_color_list: [
                 tim_colors, tercile_enso, spi_colors, cmst_colors,
                 precipitation_1, precipitation_2, precipitation_3,
-                anomalies_1, anomalies_2, anomalies_3, anomalies_4,
+                anomalies_1, anomalies_2, anomalies_1r, anomalies_2r,
+                anomalies_3, anomalies_4,
                 proba_exceed_1, proba_exceed_2,
                 proba_noexceed_1, proba_noexceed_2,
                 precipitation_fcst_1, temperature_fcst_1,
