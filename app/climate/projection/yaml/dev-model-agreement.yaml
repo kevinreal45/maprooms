@@ -137,28 +137,42 @@ opt_inputs:
             fr: Signal de changement
         default: positive
 
+
 climatological_period:
     historical:
         start_year: 1981
         end_year: 2014
     future:
-        start_year: 2041
-    length: 30
+        start_year: 2015
+        end_year: 2100
 
 opt_climatological_period:
     label:
         en: Climatological periods
         fr: Périodes climatologiques
-    historical_start_year:
-        en: Historical start year
-        fr: Année de début historique
-    future_start_year:
-        en: Future start year
-        fr: Année de début future
-    length:
-        en: Period length
-        fr: Durée de la période
-    unit:
-        en: years
-        fr: ans
-        
+    historical:
+        label:
+            en: Historical base period
+            fr: Période de référence historique
+        start_year:
+            en: Start year
+            fr: Année de début historique
+        end_year:
+            en: End year
+            fr: Année de fin historique
+        unit:
+            en: years
+            fr: ans
+    future:
+        label:
+            en: Future base period
+            fr: Période de référence future
+        start_year:
+            en: Start year
+            fr: Année de début future
+        end_year:
+            en: End year
+            fr: Année de fin future
+        unit:
+            en: years
+            fr: ans 
